@@ -14,10 +14,10 @@ export const metadata = {
 
 // Stats data
 const stats = [
-  { value: "10,000+", label: "Happy Customers", icon: Users },
-  { value: "500+", label: "Verified Pros", icon: Shield },
-  { value: "4.8", label: "Average Rating", icon: Star },
-  { value: "30 min", label: "Avg Response", icon: Clock },
+  { value: "Browse", label: "Categories", icon: Users },
+  { value: "Compare", label: "Service options", icon: Shield },
+  { value: "Request", label: "Quotes", icon: Star },
+  { value: "Manage", label: "Bookings", icon: Clock },
 ];
 
 // Color schemes for categories
@@ -32,7 +32,13 @@ const categoryColors: Record<string, { bg: string; icon: string; gradient: strin
 
 export default async function ServicesPage() {
   // Fetch all categories with their services
-  const apiCategories = await servicesApi.getCategories({ includeServices: true });
+  let apiCategories: Awaited<ReturnType<typeof servicesApi.getCategories>> = [];
+  let catalogAvailable = true;
+  try {
+    apiCategories = await servicesApi.getCategories({ includeServices: true });
+  } catch {
+    catalogAvailable = false;
+  }
   const totalServices = apiCategories.reduce(
     (acc, cat) => acc + (cat._count?.services || cat.services?.length || 0),
     0
@@ -44,7 +50,7 @@ export default async function ServicesPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
+        <section className="relative bg-gradient-to-br from-slate-950 via-teal-950 to-slate-900 text-white overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0" style={{
@@ -67,7 +73,7 @@ export default async function ServicesPage() {
               {/* Title */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
                 Find the Perfect
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-400">
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-cyan-200">
                   Service for Your Home
                 </span>
               </h1>
@@ -75,7 +81,7 @@ export default async function ServicesPage() {
               {/* Description */}
               <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
                 Browse our complete catalog of professional home services.
-                Verified experts, transparent pricing, satisfaction guaranteed.
+                Explore categories and compare options. Booking and live prices depend on availability.
               </p>
 
               {/* Search Bar */}
@@ -129,10 +135,11 @@ export default async function ServicesPage() {
 
             {/* Categories with Services */}
             <div className="space-y-12 sm:space-y-16">
+              {!catalogAvailable && <div role="status" className="rounded-2xl border border-teal-200 bg-teal-50 p-8 text-center text-slate-800"><h3 className="text-xl font-semibold">Service catalog temporarily unavailable</h3><p className="mt-2">Our services API is not connected yet. Please check back when live listings return.</p></div>}
               {apiCategories.map((category) => {
                 const Icon = getCategoryIcon(category.slug, category.icon);
                 const services = category.services || [];
-                const colors = categoryColors[category.slug] || { bg: "bg-primary/10", icon: "text-primary", gradient: "from-primary to-amber-500" };
+                const colors = categoryColors[category.slug] || { bg: "bg-primary/10", icon: "text-primary", gradient: "from-teal-700 to-cyan-700" };
 
                 return (
                   <div key={category.id} className="relative">
@@ -283,13 +290,13 @@ export default async function ServicesPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
-                href="tel:+8801700000000"
+                href="/services"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                Call Us Now
+                Browse Services
               </a>
               <Link
                 href="/search"
