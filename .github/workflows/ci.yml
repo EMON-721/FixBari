@@ -30,6 +30,7 @@ jobs:
       - run: node tests/google-token.test.cjs
       - run: node tests/repair-estimate.test.js
       - run: pnpm build
+      - run: pnpm --filter @local-services/auth test -- --runInBand
   database:
     name: PostgreSQL and Django migrations
     runs-on: ubuntu-latest
