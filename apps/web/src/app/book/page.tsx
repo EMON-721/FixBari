@@ -63,9 +63,6 @@ async function BookingContent({ searchParams }: BookPageProps) {
       return <div className="mx-auto max-w-7xl">
         <h1 className="mb-2 text-3xl font-bold text-slate-900">Request {catalogService.name}</h1>
         <p className="mb-6 text-slate-600">{catalogService.description}</p>
-        <p role="status" className="mb-6 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">
-          Enter your booking details below. The displayed price is indicative; submission requires the live booking API. No payment is collected on this page.
-        </p>
         <BookingForm service={data} catalogOnly />
       </div>;
     }
