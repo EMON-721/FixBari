@@ -8,6 +8,6 @@ export class LoginDto {
   password: string;
 
   @IsOptional()
-  @Matches(/^\\d{6}$/)
+  @Matches(/^\d{6}$/)
   otpCode?: string;
 }
