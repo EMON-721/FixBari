@@ -60,7 +60,7 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   async confirmAdmin2fa(@Request() req:{user:{id:string,role:string}},@Body() body:{code:string}) {
     if(req.user.role !== "ADMIN") throw new ForbiddenException();
-    if(typeof body?.code !== "string" || !/^\\d{6}$/.test(body.code)) throw new ForbiddenException("Invalid code");
+    if(typeof body?.code !== "string" || !/^\d{6}$/.test(body.code)) throw new ForbiddenException("Invalid code");
     return this.authService.confirmAdminMfa(req.user.id,body.code);
   }
 
