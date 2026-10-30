@@ -21,7 +21,7 @@ export default function SettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-14 lg:pl-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-sm text-gray-500 mt-1">Review operational settings. Some controls remain visual until connected to a persisted settings API.</p>
+          <p className="text-sm text-gray-500 mt-1">Review operational settings. Some controls are visual demonstrations until connected to a persisted settings API. Payment gateway statuses must be verified with providers.</p>
         </div>
         <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25">
           <Save className="w-4 h-4" />
@@ -212,10 +212,10 @@ export default function SettingsPage() {
                     <p className="font-medium text-gray-900 mb-4">Payment Gateways</p>
                     <div className="space-y-3">
                       {[
-                        { name: "bKash", status: "active" },
-                        { name: "Nagad", status: "active" },
-                        { name: "Card Payments", status: "inactive" },
-                        { name: "Cash on Delivery", status: "active" },
+                        { name: "bKash", status: "unverified" },
+                        { name: "Nagad", status: "unverified" },
+                        { name: "Card Payments", status: "unverified" },
+                        { name: "Cash on Delivery", status: "unverified" },
                       ].map((gateway) => (
                         <div key={gateway.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                           <span className="font-medium text-gray-700">{gateway.name}</span>
