@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Logo } from "./logo";
 
 interface AuthLayoutProps {
@@ -42,34 +43,11 @@ export function AuthLayout({
       {/* Right side - Image */}
       {showImage && (
         <div className="hidden lg:flex lg:flex-1 bg-primary items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary to-amber-500" />
+          <div className="absolute inset-0 bg-gradient-to-br from-teal-950 via-teal-800 to-cyan-700" />
           <div className="relative z-10 p-12 text-center">
             <div className="w-full max-w-md mx-auto">
-              {/* Placeholder for worker image */}
-              <div className="w-80 h-96 mx-auto bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <div className="text-white/60 text-center p-8">
-                  <svg
-                    className="w-24 h-24 mx-auto mb-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  <p className="text-sm">Add your worker image at:</p>
-                  <p className="text-xs mt-1 font-mono">/public/images/auth-worker.png</p>
-                </div>
+              <div className="relative mx-auto h-96 w-80 overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-2xl">
+                <Image src="/images/auth-worker.png" alt="FixBari home service professional" fill sizes="320px" className="object-cover" priority />
               </div>
             </div>
             <div className="mt-8 text-white">
