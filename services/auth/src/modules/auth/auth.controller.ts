@@ -48,6 +48,22 @@ export class AuthController {
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post("admin/2fa/setup")
+  async setupAdmin2fa(@Request() req:{user:{id:string,role:string}}) {
+    if(req.user.role !== "ADMIN") throw new ForbiddenException();
+    return this.authService.setupAdminMfa(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("admin/2fa/confirm")
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async confirmAdmin2fa(@Request() req:{user:{id:string,role:string}},@Body() body:{code:string}) {
+    if(req.user.role !== "ADMIN") throw new ForbiddenException();
+    if(typeof body?.code !== "string" || !/^\\d{6}$/.test(body.code)) throw new ForbiddenException("Invalid code");
+    return this.authService.confirmAdminMfa(req.user.id,body.code);
+  }
+
   @Post("logout")
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   async logout(@Body() body: RefreshTokenDto) {
