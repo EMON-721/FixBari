@@ -4,6 +4,7 @@ import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
 import { BookingForm } from "@/components/booking";
 import { servicesApi } from "@/lib/api";
+import { getSubServiceById } from "@/config/sub-services";
 
 interface BookPageProps {
   searchParams: Promise<{ service?: string }>;
@@ -52,6 +53,8 @@ async function BookingContent({ searchParams }: BookPageProps) {
 
   // If service not found
   if (!service) {
+    const catalogService = getSubServiceById(serviceId);
+    if (catalogService) return <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"><h1 className="text-3xl font-bold text-slate-900">Request {catalogService.name}</h1><p className="mt-3 text-slate-600">{catalogService.description}</p><div className="mt-6 rounded-xl bg-teal-50 p-5"><p className="font-semibold text-teal-900">Price: {catalogService.price > 0 ? `illustrative ৳${catalogService.price.toLocaleString()}` : "Quote required"}</p><p className="mt-2 text-sm text-teal-800">Our booking backend does not yet recognize this catalog-only listing. Booking confirmation and payment are unavailable until the service is activated. No request has been submitted.</p></div><Link href={`/services/${catalogService.categoryId}/${catalogService.slug}`} className="mt-6 inline-flex rounded-xl bg-teal-800 px-6 py-3 font-semibold text-white">Back to service details</Link></div>;
     return (
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
