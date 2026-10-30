@@ -16,12 +16,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   let categories: Awaited<ReturnType<typeof servicesApi.getCategories>> = [];
   let services: Awaited<ReturnType<typeof servicesApi.search>>["services"] = [];
 
-  if (query && query.trim().length >= 2) {
-    const results = await servicesApi.search(query);
-    categories = results.categories;
-    services = results.services;
-  } else if (!query) {
-    categories = await servicesApi.getCategories();
+  let catalogAvailable = true;
+  try {
+    if (query && query.trim().length >= 2) {
+      const results = await servicesApi.search(query);
+      categories = results.categories;
+      services = results.services;
+    } else if (!query) {
+      categories = await servicesApi.getCategories();
+    }
+  } catch {
+    catalogAvailable = false;
   }
 
   const totalResults = categories.length + services.length;
@@ -31,7 +36,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <Header />
 
       <main className="flex-1">
-        <div className="bg-primary py-8 px-4 sm:px-6 lg:px-8">
+        <div className="bg-teal-900 py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <Link
               href="/"
@@ -63,6 +68,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               </p>
             )}
 
+            {!catalogAvailable && <div role="status" className="rounded-xl border border-teal-200 bg-teal-50 p-6 text-slate-800 mb-6"><h2 className="font-semibold">Search is temporarily unavailable</h2><p className="mt-2 text-sm">The live service catalog is offline. Try again after the backend connects.</p></div>}
             {/* Categories Results */}
             {categories.length > 0 && (
               <div className="mb-8">
@@ -156,7 +162,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             )}
 
             {/* No Results */}
-            {query && query.trim().length >= 2 && totalResults === 0 && (
+            {catalogAvailable && query && query.trim().length >= 2 && totalResults === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 mb-4">
                   No services found for &quot;{query}&quot;
