@@ -54,6 +54,7 @@ export class UsersService {
       where:{id},data:{isActive}
     });
     if (updated.count !== 1) return null;
+    if (!isActive) await this.prisma.authSession.deleteMany({where:{userId:id}});
     return this.prisma.authUser.findUnique({where:{id},select:{id:true,isActive:true}});
   }
 
