@@ -1,4 +1,4 @@
-import { Wrench, Sparkles, Zap, Paintbrush, Droplets, Truck } from "lucide-react";
+import { Wrench, Sparkles, Zap, Paintbrush, Droplets, Truck, Snowflake, Bug, Hammer, Trees } from "lucide-react";
 import type { ServiceCategory } from "@/types/service";
 
 export const SERVICE_CATEGORIES: ServiceCategory[] = [
@@ -50,4 +50,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     icon: Truck,
     description: "Moving and delivery services",
   },
+  { id:"appliance-ac",name:"Appliance & AC",nameLocal:"অ্যাপ্লায়েন্স ও এসি",slug:"appliance-ac",icon:Snowflake,description:"Appliance diagnostics, maintenance and repairs" },
+  { id:"pest-control",name:"Pest Control",nameLocal:"পেস্ট কন্ট্রোল",slug:"pest-control",icon:Bug,description:"Home and building pest treatment services" },
+  { id:"home-improvement",name:"Home Improvement",nameLocal:"হোম ইমপ্রুভমেন্ট",slug:"home-improvement",icon:Hammer,description:"Renovation and structural maintenance" },
+  { id:"outdoor-maintenance",name:"Outdoor & Maintenance",nameLocal:"আউটডোর ও মেইনটেন্যান্স",slug:"outdoor-maintenance",icon:Trees,description:"Garden, water tank and property systems care" },
 ];
