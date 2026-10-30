@@ -1,0 +1,45 @@
+name: Import complete FixBari source tree
+on:
+  push:
+    branches: [main]
+    paths: ['release/FixBari_source.zip']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Verify and extract trusted owner-provided source archive
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, zipfile
+          archive=Path('release/FixBari_source.zip')
+          assert archive.is_file(), 'Source archive not found'
+          expected='61d4edb62f410e7ccffc1d7af43ad6efb99309ff27d9d4e0f256e2a18c2786f0'
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == expected, 'Source archive checksum mismatch'
+          with zipfile.ZipFile(archive) as z:
+              assert z.testzip() is None, 'Archive integrity failed'
+              for item in z.infolist():
+                  name=item.filename
+                  parts=Path(name).parts
+                  assert name and not name.startswith('/') and '..' not in parts, f'Unsafe archive path: {name}'
+                  assert not name.startswith('.git/'), f'Git metadata in archive: {name}'
+                  assert not ((item.external_attr >> 16) & 0o170000) == 0o120000, 'Symlinks not allowed'
+              z.extractall('.')
+          archive.unlink()
+          PY
+      - name: Commit extracted source to the main branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if ! git diff --staged --quiet; then
+            git commit -m "feat: import full FixBari source applications, services, tests and docs"
+            git push origin HEAD:main
+          fi
