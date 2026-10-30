@@ -24,7 +24,6 @@ export default function ServicesPage() {
         </div>
       </nav>
       <div className="mx-auto max-w-6xl px-4 py-12">
-        <div role="status" className="mb-12 rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm text-slate-700">Catalog preview: services below come from the original uploaded project. Listed reference prices are illustrative, not confirmed quotes. Live bookings and availability are temporarily offline.</div>
         {SERVICE_CATEGORIES.map(category=>{
           const services=SUB_SERVICES.filter(service=>service.categoryId===category.slug);
           const Icon=category.icon;
