@@ -171,6 +171,11 @@ services:
       RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672/
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY before starting}
       PAYMENT_INTERNAL_TOKEN: ${PAYMENT_INTERNAL_TOKEN:?Set PAYMENT_INTERNAL_TOKEN before starting}
+      SSLCOMMERZ_STORE_ID: ${SSLCOMMERZ_STORE_ID:-}
+      SSLCOMMERZ_STORE_PASSWORD: ${SSLCOMMERZ_STORE_PASSWORD:-}
+      SSLCOMMERZ_ENVIRONMENT: ${SSLCOMMERZ_ENVIRONMENT:-sandbox}
+      PAYMENT_BASE_URL: ${PAYMENT_BASE_URL:-http://localhost}
+      WEB_APP_BASE_URL: ${WEB_APP_BASE_URL:-http://localhost}
       ALLOWED_HOSTS: localhost,127.0.0.1,payment
     labels:
       - "traefik.enable=true"
