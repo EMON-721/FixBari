@@ -115,6 +115,12 @@ export function BookingForm({ service }: BookingFormProps) {
         return;
       }
 
+      // Never claim checkout has completed when gateway initiation failed.
+      if (data.paymentMethod === "ONLINE" && !booking.gatewayUrl) {
+        router.push(`/book/error?type=server&message=${encodeURIComponent("Booking was saved as pending but online checkout is unavailable. Do not pay again until your booking status has been checked.")}&serviceId=${encodeURIComponent(service.id)}`);
+        return;
+      }
+
       // If online payment but no gateway URL, payment initiation failed
       // Still create booking but mark payment as pending
       const paymentStatus = data.paymentMethod === "ONLINE" && !booking.gatewayUrl
