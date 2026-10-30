@@ -24,13 +24,14 @@ export function LoginForm() {
       email: "",
       password: "",
       rememberMe: false,
+      otpCode: "",
     },
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError(null);
-      await login(data.email, data.password);
+      await login(data.email, data.password, data.otpCode);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.");
     }
@@ -59,6 +60,10 @@ export function LoginForm() {
           {...register("password")}
           className="h-12 bg-gray-50 border-gray-200"
         />
+      </FormField>
+
+      <FormField label="Authenticator code (if 2FA enabled)" error={errors.otpCode?.message}>
+        <Input inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="6-digit code" {...register("otpCode")} className="h-12 bg-gray-50 border-gray-200" />
       </FormField>
 
       <div className="flex items-center justify-between">
