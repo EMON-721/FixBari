@@ -281,7 +281,7 @@ export function useSchedule() {
 
     try {
       const response = await jobsApi.getSchedule(token);
-      setSchedule(response.data);
+      setSchedule(response.data.availability);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch schedule");
     } finally {
