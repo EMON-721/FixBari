@@ -99,6 +99,7 @@ export const authApi = {
     }),
 
   me: (token: string) => baseFetch("/auth/me", { token }),
+  logout: (refreshToken: string) => baseFetch("/auth/logout", {method:"POST",body:JSON.stringify({refreshToken})}),
   setupAdminMfa: (token: string) => baseFetch<{otpAuthUrl:string}>("/auth/admin/2fa/setup",{method:"POST",token}),
   confirmAdminMfa: (token: string, code: string) => baseFetch<{enabled:boolean}>("/auth/admin/2fa/confirm",{method:"POST",token,body:JSON.stringify({code})}),
 
