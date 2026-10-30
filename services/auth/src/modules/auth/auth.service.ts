@@ -78,6 +78,7 @@ export class AuthService {
       throw new UnauthorizedException("Account is disabled");
     }
 
+    let mfaVerified = false;
     if (user.role === UserRole.ADMIN) {
       const mfa = await this.prisma.adminMfa.findUnique({where:{userId:user.id}});
       if (mfa?.enabled) {
@@ -88,9 +89,10 @@ export class AuthService {
           where:{id:mfa.id,lastUsedStep:{lt:BigInt(step)}},data:{lastUsedStep:BigInt(step)}
         });
         if (updated.count !== 1) throw new UnauthorizedException("Authenticator code already used");
+        mfaVerified = true;
       }
     }
-    const tokens = await this.generateTokens(user, user.role === UserRole.ADMIN);
+    const tokens = await this.generateTokens(user, mfaVerified);
 
     return {
       user: {id:user.id,email:user.email,firstName:user.firstName,lastName:user.lastName,role:user.role},
