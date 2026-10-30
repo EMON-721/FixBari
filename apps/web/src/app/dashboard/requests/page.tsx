@@ -43,7 +43,7 @@ export default function RequestsPage() {
     refresh().catch(e=>setError(e.message));
     servicesApi.getServices().then(data=>{
       const list = Array.isArray(data) ? (data as Service[]) : [];
-      setServices(list); if(list.length)setServiceId(list[0].id);
+      setServices(list); if(list[0])setServiceId(list[0].id);
     }).catch(()=>{});
   }, []);
   async function submit(e:FormEvent) {

@@ -121,6 +121,7 @@ services:
       RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in environment before starting}
       PAYMENT_INTERNAL_TOKEN: ${PAYMENT_INTERNAL_TOKEN:?Set PAYMENT_INTERNAL_TOKEN before starting}
+      PAYMENT_SERVICE_URL: http://payment:3004/api/payment
       PORT: 3003
     labels:
       - "traefik.enable=true"
