@@ -157,7 +157,12 @@ export class AuthService {
     };
 
     const accessToken = this.jwtService.sign({ ...payload, tokenUse: "access" });
-    const refreshToken = this.jwtService.sign({ ...payload, tokenUse: "refresh" }, { expiresIn: "30d" });
+    const refreshToken = this.jwtService.sign({ ...payload, tokenUse: "refresh", jti: crypto.randomUUID() }, { expiresIn: "30d" });
+    const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
+    await this.prisma.authSession.create({ data: {
+      userId: user.id, refreshToken: tokenHash,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    } });
 
     return {
       accessToken,
@@ -170,16 +175,27 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(refreshToken);
       if (payload.tokenUse !== "refresh") throw new UnauthorizedException("Invalid refresh token type");
+      const hash = crypto.createHash("sha256").update(refreshToken).digest("hex");
+      const session = await this.prisma.authSession.findFirst({where:{userId:payload.sub,refreshToken:hash,expiresAt:{gt:new Date()}}});
+      if (!session) throw new UnauthorizedException("Session expired or revoked");
       const user = await this.usersService.findById(payload.sub);
 
       if (!user || !user.isActive) {
         throw new UnauthorizedException();
       }
 
+      const revoked = await this.prisma.authSession.deleteMany({where:{id:session.id,refreshToken:hash}});
+      if (revoked.count !== 1) throw new UnauthorizedException("Refresh token already used");
       return this.generateTokens(user);
     } catch {
       throw new UnauthorizedException("Invalid refresh token");
     }
+  }
+
+  async logout(refreshToken: string) {
+    const hash = crypto.createHash("sha256").update(refreshToken).digest("hex");
+    await this.prisma.authSession.deleteMany({where:{refreshToken:hash}});
+    return {success:true};
   }
 
   async forgotPassword(email: string) {
@@ -243,6 +259,7 @@ export class AuthService {
 
     // Update user password and mark token as used
     await this.prisma.$transaction([
+      this.prisma.authSession.deleteMany({where:{userId:resetToken.userId}}),
       this.prisma.authUser.update({
         where: { id: resetToken.userId },
         data: { passwordHash },
