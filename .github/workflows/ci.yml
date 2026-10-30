@@ -1,0 +1,74 @@
+name: FixBari CI — build, database and browser smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'services/**'
+      - 'packages/**'
+      - 'tests/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ci.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: All apps and TypeScript services
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @local-services/database db:generate
+      - run: node tests/google-token.test.cjs
+      - run: pnpm build
+  database:
+    name: PostgreSQL and Django migrations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: fixbari
+          POSTGRES_PASSWORD: fixbari_ci_only
+          POSTGRES_DB: fixbari_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fixbari" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://fixbari:fixbari_ci_only@localhost:5432/fixbari_ci
+      DJANGO_SECRET_KEY: temporary-ci-only-not-production
+      DEBUG: 'False'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: pnpm/action-setup@v4
+        with: {version: 9.15.1}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @local-services/database db:generate
+      - run: pnpm --filter @local-services/database exec prisma migrate deploy
+      - run: pnpm --filter @local-services/database exec prisma migrate status
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install ./services/payment
+      - run: python services/payment/manage.py check
+      - run: python services/payment/manage.py migrate --noinput
+  browser-preview:
+    name: Chromium browser E2E (offline preview)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install playwright
+      - run: python -m playwright install --with-deps chromium
+      - run: python tests/browser_preview_e2e.py
