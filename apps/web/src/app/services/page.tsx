@@ -4,13 +4,6 @@ import { SERVICE_CATEGORIES } from "@/config/service-categories";
 import { SUB_SERVICES } from "@/config/sub-services";
 import { SearchBar } from "@/components/home/search-bar";
 
-const extraGroups = [
-  {name:"Appliance & AC", items:["Refrigerator repair","Washing machine repair","Microwave servicing","Water purifier servicing"]},
-  {name:"Pest Control", items:["Cockroach control","Termite treatment","Mosquito control","Rodent control"]},
-  {name:"Home Improvement", items:["Carpentry","Tile installation","Waterproofing","Glass and aluminium work"]},
-  {name:"Outdoor & Maintenance", items:["Garden maintenance","Water tank cleaning","Generator servicing","CCTV installation"]},
-];
-
 export const metadata = { title:"All Services | FixBari", description:"Explore home service categories and individual services in Bangladesh." };
 
 export default function ServicesPage() {
@@ -28,7 +21,6 @@ export default function ServicesPage() {
       <nav aria-label="Service categories" className="sticky top-16 z-20 border-b border-teal-100 bg-white/95 px-4 py-4 shadow-sm backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap gap-2">
           {SERVICE_CATEGORIES.map(category=><a key={category.id} href={`#${category.slug}`} className="rounded-full border border-teal-200 px-4 py-2 text-sm font-semibold text-teal-900 hover:bg-teal-50">{category.name}</a>)}
-          <a href="#more-services" className="rounded-full bg-teal-800 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">More services</a>
         </div>
       </nav>
       <div className="mx-auto max-w-6xl px-4 py-12">
@@ -40,15 +32,10 @@ export default function ServicesPage() {
             <div className="mb-6 flex items-center gap-4"><div className="rounded-2xl bg-teal-100 p-3 text-teal-800"><Icon className="h-7 w-7"/></div><div><h2 className="text-2xl font-bold sm:text-3xl">{category.name}</h2><p className="text-sm text-slate-500">{category.description}</p></div></div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{services.map(service=><Link href={`/services/${category.slug}/${service.slug}`} key={service.id} className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-teal-300 hover:shadow-lg">
               <div className="mb-4 flex items-center justify-between"><service.icon className="h-7 w-7 text-teal-700"/><span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-800">View details</span></div>
-              <h3 className="text-lg font-bold group-hover:text-teal-800">{service.name}</h3><p className="mt-1 text-sm text-slate-500">{service.nameLocal}</p><p className="mt-3 text-sm text-slate-600">{service.description}</p><p className="mt-4 border-t border-slate-100 pt-3 text-sm font-semibold text-teal-900">Reference price: ৳{service.price.toLocaleString()}</p>
+              <h3 className="text-lg font-bold group-hover:text-teal-800">{service.name}</h3><p className="mt-1 text-sm text-slate-500">{service.nameLocal}</p><p className="mt-3 text-sm text-slate-600">{service.description}</p><p className="mt-4 border-t border-slate-100 pt-3 text-sm font-semibold text-teal-900">{service.price > 0 ? `Illustrative price: ৳${service.price.toLocaleString()}` : "Planned · Price to be confirmed"}</p>
             </Link>)}</div>
           </section>;
         })}
-        <section id="more-services" className="scroll-mt-40 border-t border-slate-200 pt-12">
-          <h2 className="text-3xl font-bold">Additional service ideas</h2>
-          <p className="mt-2 text-slate-600">Planned categories; not available for booking until providers and backend records are activated.</p>
-          <div className="mt-8 grid gap-5 md:grid-cols-2">{extraGroups.map(group=><div key={group.name} className="rounded-2xl border border-slate-200 bg-white p-6"><h3 className="text-xl font-bold text-teal-900">{group.name}</h3><ul className="mt-4 space-y-2">{group.items.map(item=><li className="text-slate-600" key={item}>• {item}</li>)}</ul></div>)}</div>
-        </section>
       </div>
     </main><Footer />
   </div>;
