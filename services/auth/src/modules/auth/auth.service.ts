@@ -90,7 +90,7 @@ export class AuthService {
         if (updated.count !== 1) throw new UnauthorizedException("Authenticator code already used");
       }
     }
-    const tokens = await this.generateTokens(user);
+    const tokens = await this.generateTokens(user, user.role === UserRole.ADMIN);
 
     return {
       user: {id:user.id,email:user.email,firstName:user.firstName,lastName:user.lastName,role:user.role},
@@ -156,11 +156,12 @@ export class AuthService {
     };
   }
 
-  private async generateTokens(user: { id: string; email: string; role: string }) {
+  private async generateTokens(user: { id: string; email: string; role: string }, mfaVerified = false) {
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
+      mfa: mfaVerified,
     };
 
     const accessToken = this.jwtService.sign({ ...payload, tokenUse: "access" }, { expiresIn: "15m" });
@@ -193,7 +194,11 @@ export class AuthService {
 
       const revoked = await this.prisma.authSession.deleteMany({where:{id:session.id,refreshToken:hash}});
       if (revoked.count !== 1) throw new UnauthorizedException("Refresh token already used");
-      return this.generateTokens(user);
+      if (user.role === UserRole.ADMIN) {
+        const mfa = await this.prisma.adminMfa.findUnique({where:{userId:user.id}});
+        if (mfa?.enabled && payload.mfa !== true) throw new UnauthorizedException("Admin MFA required");
+      }
+      return this.generateTokens(user,payload.mfa === true);
     } catch {
       throw new UnauthorizedException("Invalid refresh token");
     }
@@ -209,7 +214,7 @@ export class AuthService {
     await this.prisma.adminMfa.upsert({
       where:{userId},update:{secretCipher,lastUsedStep:BigInt(-1)},create:{userId,secretCipher}
     });
-    return {otpAuthUrl:totpUri(secret,user.email),secretBase32:Buffer.from(secret,"hex").toString("hex")};
+    return {otpAuthUrl:totpUri(secret,user.email)};
   }
 
   async confirmAdminMfa(userId:string,code:string) {
