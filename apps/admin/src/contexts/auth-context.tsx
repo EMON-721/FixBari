@@ -13,7 +13,7 @@ import { storage } from "@/lib/storage";
 import type { User, AuthState, LoginResponse } from "@/types/auth";
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, otpCode?: string) => Promise<void>;
   logout: () => void;
   refreshSession: () => Promise<boolean>;
 }
@@ -110,8 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshSession]);
 
   const login = useCallback(
-    async (email: string, password: string) => {
-      const response = (await authApi.login(email, password)) as LoginResponse;
+    async (email: string, password: string, otpCode?: string) => {
+      const response = (await authApi.login(email, password, otpCode)) as LoginResponse;
 
       // Check if user is an admin
       if (response.user.role !== "ADMIN") {
