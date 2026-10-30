@@ -20,9 +20,9 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-center min-h-[480px] lg:min-h-[540px] py-12 lg:py-0">
+        <div className="flex flex-col lg:flex-row items-center min-h-[540px] lg:min-h-[620px] py-14 lg:py-16">
           {/* Left Content */}
-          <div className="flex-1 text-center lg:text-left py-8 lg:py-16 z-10">
+          <div className="flex-1 text-center lg:text-left py-8 lg:py-12 z-10 pb-24 lg:pb-20">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
               <Star className="w-4 h-4 text-cyan-300 fill-amber-400" />
@@ -33,7 +33,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Home services,
-              <span className="block mt-2 text-amber-400">
+              <span className="block mt-2 text-cyan-300">
                 made simple.
               </span>
             </h1>
@@ -49,7 +49,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
             </div>
 
             {/* Stats */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-6 sm:gap-8">
+            <div className="flex flex-wrap justify-center lg:justify-start gap-5 sm:gap-8 pb-16 lg:pb-20">
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                   <Users className="w-5 h-5 text-white" />
@@ -133,12 +133,12 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
       </div>
 
       {/* Bottom Wave */}
-      <div className="absolute bottom-0 left-0 right-0">
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0">
         <svg
           viewBox="0 0 1440 120"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-auto"
+          className="block w-full h-auto max-h-12"
         >
           <path
             d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
