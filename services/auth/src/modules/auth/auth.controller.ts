@@ -116,7 +116,9 @@ export class AuthController {
   @Post("admin/users/:id/status")
   async adminSetUserStatus(@Request() req: {user:{role:string,id:string}}, @Param("id") id:string, @Body() body:{isActive:boolean}) {
     if (req.user.role !== "ADMIN") throw new ForbiddenException();
-    if (req.user.id === id) throw new ForbiddenException("Cannot suspend your own admin account");
+    if (req.user.id === id) throw new ForbiddenException("Cannot change your own admin account status");
+    const target = await this.usersService.findById(id);
+    if (!target || target.role === "ADMIN") throw new ForbiddenException("Admin accounts cannot be managed through the user-status endpoint");
     if (typeof body?.isActive !== "boolean") throw new ForbiddenException("Invalid requested status");
     return {success:true, data:await this.usersService.setActiveStatus(id,body.isActive)};
   }
