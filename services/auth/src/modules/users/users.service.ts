@@ -29,7 +29,6 @@ export class UsersService {
 
   async listPublicDirectory() {
     return this.prisma.authUser.findMany({
-      where:{role:{not:UserRole.ADMIN}},
       select:{id:true,email:true,firstName:true,lastName:true,phone:true,role:true,isActive:true,createdAt:true,emailVerified:true},
       orderBy:{createdAt:"desc"},take:200,
     });
@@ -51,7 +50,11 @@ export class UsersService {
   }
 
   async setActiveStatus(id:string,isActive:boolean) {
-    // Enforce the role restriction in SQL as well, avoiding a check/update race.\n    const updated = await this.prisma.authUser.updateMany({\n      where:{id,role:{not:UserRole.ADMIN}},data:{isActive}\n    });\n    if (updated.count !== 1) return null;\n    return this.prisma.authUser.findUnique({where:{id},select:{id:true,isActive:true}});
+    const updated = await this.prisma.authUser.updateMany({
+      where:{id},data:{isActive}
+    });
+    if (updated.count !== 1) return null;
+    return this.prisma.authUser.findUnique({where:{id},select:{id:true,isActive:true}});
   }
 
   async create(data: CreateUserDto) {
