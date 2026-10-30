@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { Search, Star, Shield, Clock, Users, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
