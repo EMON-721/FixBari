@@ -14,8 +14,17 @@ import { transformCategories } from "@/lib/transforms";
 
 export default async function Home() {
   // Fetch categories from the services API
-  const apiCategories = await servicesApi.getCategories();
-  const categories = transformCategories(apiCategories);
+  // Keep the public landing page available while the catalog API is offline.
+  // Never synthesize live service availability or prices in this fallback.
+  let categories: ReturnType<typeof transformCategories> = [];
+  let catalogAvailable = true;
+  try {
+    const apiCategories = await servicesApi.getCategories();
+    categories = transformCategories(apiCategories);
+  } catch (error) {
+    catalogAvailable = false;
+    console.error("Catalog unavailable; serving landing page without live categories", error instanceof Error ? error.message : "Unknown catalog error");
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -34,7 +43,14 @@ export default async function Home() {
             <h2 id="categories-heading" className="sr-only">
               Our Services
             </h2>
-            <ServiceCategoriesGrid categories={categories} />
+            {catalogAvailable ? (
+              <ServiceCategoriesGrid categories={categories} />
+            ) : (
+              <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-6 py-8 text-center text-gray-800">
+                <h3 className="text-lg font-semibold">Our service catalog is temporarily unavailable</h3>
+                <p className="mt-2 text-sm">Please check back shortly. Booking and live pricing require our services to be online.</p>
+              </div>
+            )}
           </div>
         </section>
 
