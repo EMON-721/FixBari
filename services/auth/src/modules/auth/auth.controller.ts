@@ -48,6 +48,12 @@ export class AuthController {
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 
+  @Post("logout")
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  async logout(@Body() body: RefreshTokenDto) {
+    return this.authService.logout(body.refreshToken);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get("me")
   async me(@Request() req: { user: { id: string; email: string; role: string } }) {
