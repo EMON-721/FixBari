@@ -92,8 +92,8 @@ export class BookingService {
       where: { id: dto.serviceId, isActive: true },
     });
 
-    if (!service) {
-      throw new AppError(400, "Service not found or inactive", "INVALID_SERVICE");
+    if (!service || !service.isActive || Number(service.basePrice) <= 0) {
+      throw new AppError(400, "Service is unavailable or pricing has not been approved", "INVALID_SERVICE");
     }
 
     // Calculate pricing
@@ -119,8 +119,12 @@ export class BookingService {
 
     // Parse scheduled date
     const scheduledDate = new Date(dto.date);
-    if (isNaN(scheduledDate.getTime())) {
+    if (isNaN(scheduledDate.getTime()) || scheduledDate.getTime() < Date.now() - 86400000) {
       throw new AppError(400, "Invalid date format", "VALIDATION_ERROR");
+    }
+
+    if (dto.paymentMethod === "ONLINE" && (!userInfo?.name || !userInfo.email || !userInfo.phone)) {
+      throw new AppError(400, "Contact details are required for online payment", "VALIDATION_ERROR");
     }
 
     // Determine payment method
@@ -242,7 +246,8 @@ export class BookingService {
   }
 
   private async initiatePayment(data: PaymentInitiationData): Promise<PaymentInitiationResponse> {
-    const paymentServiceUrl = process.env.PAYMENT_SERVICE_URL || "http://localhost/api/payment";
+    const paymentServiceUrl = process.env.PAYMENT_SERVICE_URL;
+    if (!paymentServiceUrl || !process.env.PAYMENT_INTERNAL_TOKEN) throw new Error("Payment service is not configured");
 
     const response = await fetch(`${paymentServiceUrl}/sslcommerz/initiate`, {
       method: "POST",
@@ -261,6 +266,7 @@ export class BookingService {
       }),
     });
 
+    if (!response.ok) throw new Error("Payment gateway session initialization failed");
     return response.json() as Promise<PaymentInitiationResponse>;
   }
 
