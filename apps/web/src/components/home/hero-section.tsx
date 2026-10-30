@@ -11,7 +11,7 @@ interface HeroSectionProps {
 export function HeroSection({ className = "" }: HeroSectionProps) {
   return (
     <section
-      className={`relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 ${className}`}
+      className={`relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-900 to-slate-900 ${className}`}
     >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
@@ -25,7 +25,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
           <div className="flex-1 text-center lg:text-left py-8 lg:py-16 z-10">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <Star className="w-4 h-4 text-cyan-300 fill-amber-400" />
               <span className="text-white text-sm font-medium">
                 FIXBARI · HOME SERVICES
               </span>
