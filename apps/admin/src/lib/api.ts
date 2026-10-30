@@ -92,13 +92,15 @@ export async function fetchAuthApi<T>(
 
 // Auth API - routes to /api/auth/*
 export const authApi = {
-  login: (email: string, password: string) =>
+  login: (email: string, password: string, otpCode?: string) =>
     baseFetch("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, otpCode: otpCode || undefined }),
     }),
 
   me: (token: string) => baseFetch("/auth/me", { token }),
+  setupAdminMfa: (token: string) => baseFetch<{otpAuthUrl:string}>("/auth/admin/2fa/setup",{method:"POST",token}),
+  confirmAdminMfa: (token: string, code: string) => baseFetch<{enabled:boolean}>("/auth/admin/2fa/confirm",{method:"POST",token,body:JSON.stringify({code})}),
 
   refreshToken: (refreshToken: string) =>
     baseFetch<{ accessToken: string; refreshToken: string; expiresIn: number }>(
