@@ -4,6 +4,7 @@ export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
   rememberMe: z.boolean().optional(),
+  otpCode: z.string().regex(/^\d{6}$/,"Enter a six-digit authenticator code").optional().or(z.literal("")),
 });
 
 export const forgotPasswordSchema = z.object({
