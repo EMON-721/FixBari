@@ -50,7 +50,7 @@ async function BookingContent({ searchParams }: BookPageProps) {
     service = catalogService
       ? await servicesApi.getServiceBySlug(catalogService.categoryId, catalogService.slug)
       : await servicesApi.getServiceById(serviceId, { includeCategory: true });
-    if (catalogService && catalogService.price === 0) service = undefined; // Proposed services must be priced and activated by admin before checkout.
+    if (catalogService && (!service.isActive || Number(service.basePrice) <= 0)) service = undefined; // Never allow unapproved or unpriced catalog entries into checkout.
   } catch {
     // Service not found
   }
