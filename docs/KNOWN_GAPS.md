@@ -1,6 +1,6 @@
 # Known production dependencies and verification gaps
 
-- No complete five-service Docker runtime, database migration or Next.js build passed in this environment (dependencies unavailable). Source syntax validation is **not** a full build.
+- GitHub Actions has passed the monorepo production build, PostgreSQL/Prisma and Django migrations, Docker Compose configuration, and Chromium offline browser tests. A live multi-container deployment and authenticated cross-service end-to-end integration have **not** been verified.
 - 54 proposed V1+V2 features are tracked; only a subset have persistence/UI integrations. Do not confuse the demo registry with a working implementation.
 - External integrations are unconfigured: SMTP delivery credentials, SMS provider, Google OAuth, KYC/document verification, payment gateway settlement/refunds, AI photo models, speech and demand forecasting.
 - Admin 2FA and persistent platform settings need server-side work. Do not treat settings toggles or browser-only demo controls as production features.

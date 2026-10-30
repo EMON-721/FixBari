@@ -1,34 +1,23 @@
-# FixBari — Source validation and release status
+# FixBari — Build and test verification
 
 **Date:** 2026-10-30  
-**Project name:** FixBari  
 **Owner:** Md. Emon Hossain  
-**Release classification:** GitHub-ready *source candidate*, **not** production-verified deployment.
+**Repository:** https://github.com/EMON-721/FixBari
 
-## Verified in this workspace
+## GitHub Actions verification
 
-- All original 427 V3 ZIP file entries were compared at the file level. **No original source file was deleted** (Python `__pycache__` artifacts are not required source files).
-- Public website text, interactive preview and account branding use **FixBari**. Owner attributed on the About page, footer and project documentation.
-- 294 TypeScript/JavaScript/TSX source files transpiled without syntax diagnostics using the available TypeScript compiler (this is syntax validation, not module resolution or a full typecheck).
-- 33 Python source files passed AST parsing; JSON files parsed; preview JavaScript passed `node --check`.
-- Rule-based cost estimator passed five unit assertions (Dhaka baseline, complex-tier pricing, method tag and invalid inputs).
-- The 24 V1 and 30 V2 *proposals* remain in the feature implementation registry.
+**Run [41086311513](https://github.com/EMON-721/FixBari/actions/runs/41086311513): 4 of 4 jobs passed.**
 
-## Added source changes
+- **Full build:** pnpm workspace dependency installation, Prisma client generation, production Next.js/TypeScript app and service builds.
+- **Database:** PostgreSQL 16, Prisma migration deployment and status, Django migration and four Django mock-gateway payment security tests.
+- **Security unit checks:** Google ID token cryptographic verification (issuer, audience, signature, expiry, tampering and verified email) and five rule-based repair cost estimator assertions.
+- **Browser:** Chromium E2E on the interactive offline preview: 24-service catalog, booking, quotation, estimate, technician job completion, customer acceptance and admin approval.
+- **Docker:** Docker Compose configuration is syntactically valid with sample environment placeholders.
 
-- Customer request/quotation and cost estimator screens; Admin customer directory, technician verification and request triage screens.
-- Technician quotation offer UI, weekly availability, profile update and estimated earnings UI.
-- Authenticated customer profile editing and address persistence; migrations for profile and technician review state.
-- Verified technician restrictions and conditional job claiming; quote opportunities expose only whitelisted public scope fields; conditional offer selection.
-- Distinct access/refresh token purposes; JWT secret fallback removed; production Django key required; CORS and previous project API routing cleaned up.
-- Original design components, service seed catalog, multi-app / microservice structure and old documentation preserved.
+Original source modules, older SRS material, preview and the 54 V1/V2 feature proposals remain in the repository.
 
-## Not tested or incomplete
+## Scope and boundaries
 
-- Next.js full build and package type checking: unavailable without workspace package installation.
-- Full PostgreSQL migrations and multi-container integration: no container stack or connected database was run.
-- Browser E2E of the **updated** preview: Chromium was not installed in this execution environment. Preview scripts passed syntax validation; do not claim fresh browser testing.
-- External authentication/OAuth, KYC, SMTP/SMS/Push provider configuration, SSLCOMMERZ merchant sandbox/live payments, refunds and settlement, AI photo model, voice, demand forecasting and remaining V1/V2 integrations are incomplete.
-- No hosting, no domain setup, no GitHub push, no production credential handling. These are reserved for the owner.
+The build and database migration checks are real CI results; they do **not** mean a public website is deployed. The browser E2E tests the local interactive preview, not a fully connected hosted backend. Google OAuth needs a live authorized Google Cloud client and domain to validate user sign-in end-to-end. Payment security tests use a mocked SSLCOMMERZ response, not a real gateway charge, settlement or refund.
 
-**Important:** The preview is a self-contained browser-only demonstration. It is not authenticated or connected to the real backend. Do not accept payments or customer identity documents before infrastructure, security and legal readiness checks are complete.
+Production credentials, SMTP/SMS delivery, KYC identity verification, photo AI, full cloud integrations and the remaining V1/V2 proposals require further implementation or live environment verification. See `KNOWN_GAPS.md`, `RELEASE_CHECKLIST.md` and `PAYMENT_SETUP_AND_VERIFICATION.md`.

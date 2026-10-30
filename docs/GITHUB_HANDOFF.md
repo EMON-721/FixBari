@@ -1,6 +1,6 @@
 # FixBari — GitHub handoff and deployment preparation
 
-This repository is the requested source-code deliverable. Hosting and pushing are intentionally left to the owner.
+This repository is the requested source-code deliverable. The source has been pushed to `EMON-721/FixBari` on GitHub. Hosting and production configuration remain with the owner.
 
 ## Owner and public naming
 
@@ -11,7 +11,7 @@ This repository is the requested source-code deliverable. Hosting and pushing ar
 
 ## Repository publishing checklist
 
-1. Create a new GitHub repository, then upload/push the contents of this `FixBari` folder to it.
+1. Use the existing `EMON-721/FixBari` GitHub repository on the `main` branch.
 2. Before committing, check `.gitignore` and scan your staged files for `.env`, `.pem`, private keys, exported databases and personal customer information. Only example environment templates belong in git.
 3. Copy `.env.example` to a local `.env` file **outside git**. Replace placeholders with independently generated secrets and provider credentials; do not reuse the prior project's hosted Railway endpoints.
 4. Configure your own API gateway / frontend URLs. `API_GATEWAY_ORIGIN` is read by the Next.js configuration; in container setups requests to `/api` are routed by Traefik.
