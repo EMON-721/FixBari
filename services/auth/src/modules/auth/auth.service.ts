@@ -156,7 +156,7 @@ export class AuthService {
       role: user.role,
     };
 
-    const accessToken = this.jwtService.sign({ ...payload, tokenUse: "access" });
+    const accessToken = this.jwtService.sign({ ...payload, tokenUse: "access" }, { expiresIn: "15m" });
     const refreshToken = this.jwtService.sign({ ...payload, tokenUse: "refresh", jti: crypto.randomUUID() }, { expiresIn: "30d" });
     const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
     await this.prisma.authSession.create({ data: {
@@ -167,7 +167,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
+      expiresIn: 15 * 60, // 15-minute access token; refresh token expires after 30 days
     };
   }
 
