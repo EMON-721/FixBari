@@ -41,10 +41,10 @@ export function Footer({ className = "" }: FooterProps) {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-8 lg:gap-8 pb-12 border-b border-gray-800">
             {/* Brand column - wider */}
             <div className="col-span-2 md:col-span-3 lg:col-span-4 mb-4 lg:mb-0">
-              <Logo className="[&_img]:brightness-0 [&_img]:invert" />
+              <Logo className="!text-white" />
               <p className="mt-4 text-sm text-gray-400 max-w-xs leading-relaxed">
                 A home-services booking and management project owned by Md. Emon Hossain.
-                Quality work, verified professionals, guaranteed satisfaction.
+                Explore local home services, compare your options, and manage requests in one place.
               </p>
 
               {/* Do not publish placeholder phone numbers or unverified contact emails. */}
