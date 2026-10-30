@@ -23,4 +23,10 @@ assert.deepEqual({ min:e.min, mid:e.mid, max:e.max }, { min:4463, mid:5250, max:
 assert.equal(e.method, 'RULE_BASED');
 assert.throws(() => calculateRepairEstimate(-1, 'BASIC', 'STANDARD', 'Dhaka'));
 assert.throws(() => calculateRepairEstimate(1500, 'NONSENSE', 'STANDARD', 'Dhaka'));
-console.log('PASS: repair estimator five assertions');
+assert.throws(() => calculateRepairEstimate(1500, 'constructor', 'STANDARD', 'Dhaka'));
+assert.throws(() => calculateRepairEstimate(1500, 'BASIC', 'toString', 'Dhaka'));
+assert.throws(() => calculateRepairEstimate(1500, 'BASIC', 'STANDARD', ''));
+assert.throws(() => calculateRepairEstimate(1500, 'BASIC', 'STANDARD', null));
+assert.throws(() => calculateRepairEstimate(1500, 'BASIC', 'STANDARD', 'a'.repeat(121)));
+assert.throws(() => calculateRepairEstimate('1500', 'BASIC', 'STANDARD', 'Dhaka'));
+console.log('PASS: repair estimator 12 assertions');
