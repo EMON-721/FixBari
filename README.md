@@ -1,37 +1,62 @@
 # FixBari
 
-**FixBari** is a Bangladesh-focused platform connecting customers with local service professionals for home and business needs.
+**FixBari** is a Bangladesh-focused home and business service marketplace connecting customers with local professionals. **Owner / Project Lead:** Md. Emon Hossain.
 
-**Owner / Project Lead:** Md. Emon Hossain.
+## How the platform works
 
-## What FixBari does
+1. A customer browses a service category, selects a service, submits location and service details, and requests a booking or quotation.
+2. The Orders API manages requests and service status; the catalog service provides available services and indicative prices.
+3. Technicians see assigned jobs, manage availability, respond with quotations and update job progress.
+4. Administrators review customers, technicians, bookings, verification and service catalog activity. Authorized admins can manage other admin accounts; permissions must be enforced on the backend, not only hidden in the interface.
+5. Where configured, the payment backend starts an SSLCOMMERZ checkout and validates gateway callbacks server-side. Estimated prices are **illustrative**, not final technician quotations.
 
-Customers can discover home services, request bookings or quotations, manage their service history, submit support requests and view indicative repair estimates. Technicians manage assigned jobs, availability and quotation offers. Administrators oversee bookings, customers, professionals, catalog content, reviews and verification decisions.
+## Customer website — `apps/web`
 
-The core catalog covers home repair, cleaning, electrical work, painting, plumbing and transport.
+This is the public-facing responsive service storefront. It supports discovery across home repairs, electrical, plumbing, cleaning, painting and transportation-related categories. Customers can view services and price indications, request or track bookings, submit quotation requests and compare offers, manage account/profile and property details, access support and view a rule-based repair estimate. Availability of individual actions depends on their API integration and feature status; demo-preview interactions are not necessarily persisted.
 
-## Applications
+## Technician website — `apps/technician`
 
-| Application | Purpose |
+The technician workspace focuses on onboarding/profile details, assigned jobs, availability, offers and quotations, job progress/completion and the technician's view of earnings. Eligibility and verification decisions are managed through the administrative workflow. Displayed payout or revenue-share figures must not be treated as settled payments until payment-provider reconciliation is integrated.
+
+## Admin website — `apps/admin`
+
+The administration workspace covers service catalog maintenance, booking and customer oversight, technician review/verification, quotation and request management, and moderation or operational monitoring. Authenticated admin-only endpoints manage the user directory and account active status, including authorized admin-to-admin management. Admin authentication is distinct from a customer's public storefront: server-side roles are checked against the current account record. The platform should protect privileged account information, avoid exposing password hashes/reset tokens, and require hardened sessions and 2FA before production use. Not every admin setting or control is yet backed by a persistent production API.
+
+## Backend services and data
+
+| Component | Responsibility |
 |---|---|
-| `apps/web` | Customer discovery, bookings, quotations, property details and support |
-| `apps/admin` | Service listings, bookings, users, technician verification and request oversight |
-| `apps/technician` | Assigned jobs, availability, profile and quotations |
+| `services/auth` (NestJS) | Account registration, password/Google identity authentication, JWT access and refresh tokens, user profile and admin account permissions |
+| `services/orders` (Express) | Bookings, quotation lifecycle and coordination with payment service |
+| `services/catalog` (NestJS) | Service categories, service listings and catalog API |
+| `services/payment` (Django) | SSLCOMMERZ checkout session and payment verification/callback logic |
+| `services/notifications` (FastAPI) | Notification-service integration points |
+| PostgreSQL + Prisma | Persistent user/order/catalog records and migration-managed schema |
+| Django migrations | Payment service database schema |
+| RabbitMQ | Asynchronous event coordination |
+| Traefik | API routing in container deployment |
+| Shared packages | Reusable React UI components and TypeScript types |
 
-## Architecture
+Internal `@local-services/*` package identifiers are retained for workspace compatibility.
 
-FixBari is a monorepo with three Next.js/React frontend apps and five backend services: NestJS Authentication, Express Orders, NestJS Service Catalog, Django Payments and FastAPI Notifications. PostgreSQL/Prisma provides data persistence, RabbitMQ handles events, and Traefik routes API traffic. Shared packages contain UI components and types. Existing internal `@local-services/*` package identifiers remain for compatibility.
+## Security, privacy and payments
 
-## Design
+- Google ID credentials are verified cryptographically server-side. Live OAuth requires a configured Google Cloud client ID, authorized origins and an actual user sign-in test.
+- Access tokens require active current user records; backend admin management is role gated. A production security review must also cover cross-service authorization, revocation, 2FA, session storage, logs and audit trails.
+- The payment integration separates merchant credentials and server-only tokens from browser code. A sandbox or live SSLCOMMERZ transaction, IPN and refund must be validated with real merchant configuration before enabling checkout.
+- Keep all secrets, merchant credentials and user data out of GitHub. Enforce least-privilege access, HTTPS and access logs in hosting.
 
-Responsive service storefront and management dashboards, reusable form and card components, amber accents and service-focused navigation. The original Figma reference and architecture documentation are retained.
+## Verification and implementation status
 
-## Documentation
+Prior GitHub Actions [run 41086311513](https://github.com/EMON-721/FixBari/actions/runs/41086311513) reported four passing jobs covering builds, Prisma/PostgreSQL and Django migrations, Google-token checks, mocked payment tests and a Chromium **offline-preview** browser journey. This is not proof of a production deployment, live OAuth, real card/wallet settlement, fully connected cross-service E2E, or completed admin 2FA. See the linked reports for the precise boundary. Later changes require a fresh passing CI run.
 
-- [System requirements and architecture](docs/SRS.md)
-- [Feature catalog and implementation matrix](docs/FEATURE_IMPLEMENTATION_MATRIX.md)
-- [Payment architecture and setup](docs/PAYMENT_SETUP_AND_VERIFICATION.md)
-- [Verification report](docs/VALIDATION_REPORT.md)
+## Project documentation
+
+- [Requirements and architecture](docs/SRS.md)
+- [Feature implementation matrix](docs/FEATURE_IMPLEMENTATION_MATRIX.md)
+- [Build and test verification](docs/VALIDATION_REPORT.md)
+- [Known implementation gaps](docs/KNOWN_GAPS.md)
+- [SSLCOMMERZ setup and verification](docs/PAYMENT_SETUP_AND_VERIFICATION.md)
 - [Deployment handoff](docs/GITHUB_HANDOFF.md)
 
 **FixBari — Local service, made simpler.**
