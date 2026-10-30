@@ -1,0 +1,120 @@
+version: '3.8'
+
+# Development overrides
+# PREREQUISITE: Run `pnpm install` locally first!
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  # Auth Service - Development with hot reload
+  auth:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "corepack enable && cd services/auth && /app/node_modules/.bin/nest start --watch"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://localservices:localservices@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRATION: 7d
+      PORT: 3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # Notifications Service - Development with hot reload
+  notifications:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./services/notifications:/app
+    command: sh -c "pip install -e . && uvicorn app.main:app --host 0.0.0.0 --port 3002 --reload"
+    environment:
+      DEBUG: "true"
+      DATABASE_URL: postgresql+asyncpg://localservices:localservices@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # Orders Service - Development with hot reload
+  orders:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "corepack enable && cd services/orders && /app/node_modules/.bin/tsx watch src/index.ts"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://localservices:localservices@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 3003
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # Payment Service - Development with hot reload
+  payment:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./services/payment:/app
+    command: sh -c "pip install -e . && python manage.py migrate && python manage.py runserver 0.0.0.0:3004"
+    environment:
+      DEBUG: "true"
+      DATABASE_URL: postgresql://localservices:localservices@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672/
+      DJANGO_SECRET_KEY: django-insecure-change-me-in-production
+      ALLOWED_HOSTS: localhost,127.0.0.1,payment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # Web Frontend - Development with hot reload
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "corepack enable && cd apps/web && /app/node_modules/.bin/next dev --port 3000 --hostname 0.0.0.0"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost/api
+    ports:
+      - "3000:3000"
+
+  # Admin Panel - Development with hot reload
+  admin:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "corepack enable && cd apps/admin && /app/node_modules/.bin/next dev --port 3010 --hostname 0.0.0.0"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost/api
+    ports:
+      - "3010:3010"
+
+  # Technician Panel - Development with hot reload
+  technician:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "corepack enable && cd apps/technician && /app/node_modules/.bin/next dev --port 3020 --hostname 0.0.0.0"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost/api
+    ports:
+      - "3020:3020"

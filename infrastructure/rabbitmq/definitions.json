@@ -1,0 +1,139 @@
+{
+  "rabbit_version": "3.12.0",
+  "users": [
+    {
+      "name": "admin",
+      "password_hash": "admin",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ["administrator"]
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "local-services.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "local-services.dead-letter",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "notifications.user-events",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "local-services.dead-letter",
+        "x-dead-letter-routing-key": "notifications.user-events.dead"
+      }
+    },
+    {
+      "name": "notifications.order-events",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "local-services.dead-letter",
+        "x-dead-letter-routing-key": "notifications.order-events.dead"
+      }
+    },
+    {
+      "name": "notifications.payment-events",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "local-services.dead-letter",
+        "x-dead-letter-routing-key": "notifications.payment-events.dead"
+      }
+    },
+    {
+      "name": "orders.payment-events",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "local-services.dead-letter",
+        "x-dead-letter-routing-key": "orders.payment-events.dead"
+      }
+    },
+    {
+      "name": "payment.order-events",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "local-services.dead-letter",
+        "x-dead-letter-routing-key": "payment.order-events.dead"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "local-services.events",
+      "vhost": "/",
+      "destination": "notifications.user-events",
+      "destination_type": "queue",
+      "routing_key": "user.*",
+      "arguments": {}
+    },
+    {
+      "source": "local-services.events",
+      "vhost": "/",
+      "destination": "notifications.order-events",
+      "destination_type": "queue",
+      "routing_key": "order.*",
+      "arguments": {}
+    },
+    {
+      "source": "local-services.events",
+      "vhost": "/",
+      "destination": "notifications.payment-events",
+      "destination_type": "queue",
+      "routing_key": "payment.*",
+      "arguments": {}
+    },
+    {
+      "source": "local-services.events",
+      "vhost": "/",
+      "destination": "orders.payment-events",
+      "destination_type": "queue",
+      "routing_key": "payment.*",
+      "arguments": {}
+    },
+    {
+      "source": "local-services.events",
+      "vhost": "/",
+      "destination": "payment.order-events",
+      "destination_type": "queue",
+      "routing_key": "order.*",
+      "arguments": {}
+    }
+  ]
+}

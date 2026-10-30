@@ -1,0 +1,31 @@
+{
+  "name": "@local-services/database",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./client": {
+      "require": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc",
+    "db:generate": "../../node_modules/.bin/prisma generate",
+    "db:push": "../../node_modules/.bin/prisma db push",
+    "db:migrate": "../../node_modules/.bin/prisma migrate dev",
+    "db:studio": "../../node_modules/.bin/prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.1.0",
+    "typescript": "^5.7.0"
+  }
+}

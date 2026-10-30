@@ -1,0 +1,248 @@
+version: '3.8'
+
+services:
+  # API Gateway / Reverse Proxy
+  traefik:
+    image: traefik:v3.0
+    container_name: local-services-traefik
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - local-services
+
+  # Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: local-services-postgres
+    environment:
+      POSTGRES_USER: localservices
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD before starting}
+      POSTGRES_DB: localservices
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U localservices"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - local-services
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: local-services-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD before starting}
+    ports:
+      - "5672:5672"
+      - "127.0.0.1:15672:15672"  # local management only
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - local-services
+
+  # Auth Service (NestJS)
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    container_name: local-services-auth
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://localservices:${POSTGRES_PASSWORD}@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in environment before starting}
+      JWT_EXPIRATION: 7d
+      PORT: 3001
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=PathPrefix(`/api/auth`)"
+      - "traefik.http.routers.auth.entrypoints=web"
+      - "traefik.http.services.auth.loadbalancer.server.port=3001"
+    networks:
+      - local-services
+
+  # Notifications Service (FastAPI)
+  notifications:
+    build:
+      context: ./services/notifications
+      dockerfile: Dockerfile
+    container_name: local-services-notifications
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://localservices:${POSTGRES_PASSWORD}@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.notifications.rule=PathPrefix(`/api/notifications`)"
+      - "traefik.http.routers.notifications.entrypoints=web"
+      - "traefik.http.services.notifications.loadbalancer.server.port=3002"
+    networks:
+      - local-services
+
+  # Orders Service (Express)
+  orders:
+    build:
+      context: .
+      dockerfile: services/orders/Dockerfile
+    container_name: local-services-orders
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://localservices:${POSTGRES_PASSWORD}@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in environment before starting}
+      PAYMENT_INTERNAL_TOKEN: ${PAYMENT_INTERNAL_TOKEN:?Set PAYMENT_INTERNAL_TOKEN before starting}
+      PORT: 3003
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.orders.rule=PathPrefix(`/api/orders`)"
+      - "traefik.http.routers.orders.entrypoints=web"
+      - "traefik.http.services.orders.loadbalancer.server.port=3003"
+    networks:
+      - local-services
+
+  # Services Microservice (NestJS)
+  services-api:
+    build:
+      context: .
+      dockerfile: services/services/Dockerfile
+    container_name: local-services-services
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://localservices:${POSTGRES_PASSWORD}@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in environment before starting}
+      PORT: 3005
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.services-api.rule=PathPrefix(`/api/services`)"
+      - "traefik.http.routers.services-api.entrypoints=web"
+      - "traefik.http.services.services-api.loadbalancer.server.port=3005"
+    networks:
+      - local-services
+
+  # Payment Service (Django)
+  payment:
+    build:
+      context: ./services/payment
+      dockerfile: Dockerfile
+    container_name: local-services-payment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://localservices:${POSTGRES_PASSWORD}@postgres:5432/localservices
+      RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY before starting}
+      PAYMENT_INTERNAL_TOKEN: ${PAYMENT_INTERNAL_TOKEN:?Set PAYMENT_INTERNAL_TOKEN before starting}
+      ALLOWED_HOSTS: localhost,127.0.0.1,payment
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.payment.rule=PathPrefix(`/api/payment`)"
+      - "traefik.http.routers.payment.entrypoints=web"
+      - "traefik.http.services.payment.loadbalancer.server.port=3004"
+    networks:
+      - local-services
+
+  # Web Frontend (Next.js)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: local-services-web
+    depends_on:
+      - auth
+      - orders
+    environment:
+      NEXT_PUBLIC_API_URL: /api
+      API_GATEWAY_ORIGIN: http://traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`localhost`)"
+      - "traefik.http.routers.web.entrypoints=web"
+      - "traefik.http.routers.web.priority=1"
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
+    networks:
+      - local-services
+
+  # Admin Panel (Next.js)
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    container_name: local-services-admin
+    depends_on:
+      - auth
+    environment:
+      NEXT_PUBLIC_API_URL: /api
+      API_GATEWAY_ORIGIN: http://traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.admin.rule=Host(`admin.localhost`)"
+      - "traefik.http.routers.admin.entrypoints=web"
+      - "traefik.http.services.admin.loadbalancer.server.port=3000"
+    networks:
+      - local-services
+
+  # Technician Panel (Next.js)
+  technician:
+    build:
+      context: .
+      dockerfile: apps/technician/Dockerfile
+    container_name: local-services-technician
+    depends_on:
+      - auth
+      - orders
+    environment:
+      NEXT_PUBLIC_API_URL: /api
+      API_GATEWAY_ORIGIN: http://traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.technician.rule=Host(`technician.localhost`)"
+      - "traefik.http.routers.technician.entrypoints=web"
+      - "traefik.http.services.technician.loadbalancer.server.port=3000"
+    networks:
+      - local-services
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  local-services:
+    driver: bridge

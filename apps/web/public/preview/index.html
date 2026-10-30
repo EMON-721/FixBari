@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#162b31"><title>FixBari | Interactive Feature Preview</title><meta name="description" content="Interactive demonstration of FixBari V1 + V2 workflows, customer, technician and admin."><link rel="stylesheet" href="styles.css"></head><body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#home"><span class="brand-icon">FB</span><span>Fix<span class="gold">Bari</span><small>Bangladesh service marketplace</small></span></a>
+    <div class="demo-label">INTERACTIVE PRODUCT PREVIEW <span class="dot"></span></div>
+    <div class="sidebar-caption">WORKSPACE</div>
+    <div class="roles" role="group" aria-label="Choose dashboard"><button data-role="customer" class="active">Customer</button><button data-role="technician">Technician</button><button data-role="admin">Admin</button></div>
+    <nav id="nav" aria-label="Main navigation"></nav>
+    <div class="sidebar-bottom"><div class="mini-icon">✓</div><div><strong>Demo mode</strong><p>Local browser data only. No money, SMS, or credentials are transmitted.</p></div></div>
+  </aside>
+  <div class="main-wrap"><header class="topbar"><button class="mobile-menu" id="mobile-menu" aria-label="Toggle menu">☰</button><div class="breadcrumbs" id="breadcrumbs">FixBari / Overview</div><div class="top-actions"><span class="live-tag">● INTERACTIVE DEMO</span><button class="ghost small" id="reset-demo">Reset demo</button><span class="avatar" title="Preview visitor">FB</span></div></header><main id="view" tabindex="-1"></main><footer class="footer">© FixBari · Interactive concept preview, not a live payment or production service.</footer></div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="modal"><div id="modal-content"></div></dialog>
+<script src="app.js" defer></script>
+<div class="owner-credit">FixBari · Owner: Md. Emon Hossain · Demonstration only</div></body></html>

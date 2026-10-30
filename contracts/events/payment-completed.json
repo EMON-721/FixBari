@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://local-services.com/schemas/events/payment-completed.json",
+  "title": "PaymentCompletedEvent",
+  "description": "Event emitted when a payment is successfully processed",
+  "type": "object",
+  "required": ["eventType", "timestamp", "correlationId", "payload"],
+  "properties": {
+    "eventType": {
+      "const": "payment.completed"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "payload": {
+      "type": "object",
+      "required": ["paymentId", "orderId", "userId", "amount", "currency", "method"],
+      "properties": {
+        "paymentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "orderId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3
+        },
+        "method": {
+          "type": "string",
+          "enum": ["card", "bank_transfer", "cash"]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AuthUser {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  googleSub     String?   @unique @map("google_sub")
+  passwordHash  String    @map("password_hash")
+  firstName     String    @map("first_name")
+  lastName      String    @map("last_name")
+  role          UserRole  @default(CUSTOMER)
+  phone         String?
+  address       String?
+  area          String?
+  city          String?
+  division      String?
+  postalCode    String? @map("postal_code")
+  avatar        String?
+  isActive      Boolean   @default(true) @map("is_active")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  sessions AuthSession[]
+
+  @@map("auth_users")
+}
+
+model AuthSession {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  refreshToken String   @map("refresh_token")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_sessions")
+}
+
+enum UserRole {
+  CUSTOMER
+  TECHNICIAN
+  ADMIN
+}

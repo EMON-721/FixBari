@@ -1,0 +1,6 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "services/auth"
+  - "services/orders"
+  - "services/services"

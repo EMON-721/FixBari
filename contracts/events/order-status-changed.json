@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://local-services.com/schemas/events/order-status-changed.json",
+  "title": "OrderStatusChangedEvent",
+  "description": "Event emitted when an order status changes",
+  "type": "object",
+  "required": ["eventType", "timestamp", "correlationId", "payload"],
+  "properties": {
+    "eventType": {
+      "const": "order.status_changed"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "payload": {
+      "type": "object",
+      "required": ["orderId", "previousStatus", "newStatus"],
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "previousStatus": {
+          "type": "string",
+          "enum": ["pending", "confirmed", "assigned", "in_progress", "completed", "cancelled"]
+        },
+        "newStatus": {
+          "type": "string",
+          "enum": ["pending", "confirmed", "assigned", "in_progress", "completed", "cancelled"]
+        },
+        "updatedBy": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  }
+}

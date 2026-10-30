@@ -1,0 +1,335 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTH SERVICE MODELS
+// ============================================
+
+model AuthUser {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  googleSub     String?   @unique @map("google_sub")
+  passwordHash  String    @map("password_hash")
+  firstName     String    @map("first_name")
+  lastName      String    @map("last_name")
+  role          UserRole  @default(CUSTOMER)
+  phone         String?
+  address       String?
+  area          String?
+  city          String?
+  division      String?
+  postalCode    String? @map("postal_code")
+  avatar        String?
+  isActive      Boolean   @default(true) @map("is_active")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  sessions            AuthSession[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@map("auth_users")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model AuthSession {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  refreshToken String   @map("refresh_token")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_sessions")
+}
+
+enum UserRole {
+  CUSTOMER
+  TECHNICIAN
+  ADMIN
+}
+
+// ============================================
+// ORDERS SERVICE MODELS
+// ============================================
+
+model Order {
+  id               String        @id @default(uuid())
+  bookingId        String        @unique @map("booking_id")
+  userId           String        @map("user_id")
+  technicianId     String?       @map("technician_id")
+  status           OrderStatus   @default(PENDING)
+  totalAmount      Decimal       @map("total_amount") @db.Decimal(10, 2)
+  baseAmount       Decimal       @map("base_amount") @db.Decimal(10, 2)
+  tier             ServiceTier   @default(STANDARD)
+  tierMultiplier   Decimal       @map("tier_multiplier") @db.Decimal(3, 2) @default(1.0)
+  areaSize         String?       @map("area_size")
+  scheduledDate    DateTime?     @map("scheduled_date")
+  scheduledTime    String?       @map("scheduled_time")
+  completedDate    DateTime?     @map("completed_date")
+  assignedAt       DateTime?     @map("assigned_at")
+  startedAt        DateTime?     @map("started_at")
+  notes            String?
+  additionalInfo   String?       @map("additional_info")
+  paymentMethod    PaymentMethod @default(COD) @map("payment_method")
+  paymentStatus    PaymentStatus @default(PENDING) @map("payment_status")
+  paymentId        String?       @map("payment_id")
+  paymentSessionId String?       @map("payment_session_id")
+  paidAt           DateTime?     @map("paid_at")
+  rating           Int?
+  review           String?
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  items    OrderItem[]
+  address  OrderAddress?
+  history  OrderHistory[]
+
+  @@index([userId])
+  @@index([technicianId])
+  @@index([status])
+  @@index([scheduledDate])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String  @map("order_id")
+  serviceId   String  @map("service_id")
+  serviceName String  @map("service_name")
+  quantity    Int     @default(1)
+  unitPrice   Decimal @map("unit_price") @db.Decimal(10, 2)
+  totalPrice  Decimal @map("total_price") @db.Decimal(10, 2)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model OrderAddress {
+  id         String @id @default(uuid())
+  orderId    String @unique @map("order_id")
+  area       String
+  city       String
+  division   String
+  postalCode String @map("postal_code")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_addresses")
+}
+
+model OrderHistory {
+  id            String       @id @default(uuid())
+  orderId       String       @map("order_id")
+  fromStatus    OrderStatus? @map("from_status")
+  toStatus      OrderStatus  @map("to_status")
+  changedBy     String       @map("changed_by")
+  changedByRole String       @map("changed_by_role")
+  reason        String?
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_history")
+}
+
+model TechnicianProfile {
+  id              String   @id
+  firstName       String   @map("first_name")
+  lastName        String   @map("last_name")
+  phone           String?
+  avatar          String?
+  rating          Decimal  @default(0) @db.Decimal(2, 1)
+  totalJobs       Int      @default(0) @map("total_jobs")
+  completedJobs   Int      @default(0) @map("completed_jobs")
+  isAvailable     Boolean  @default(true) @map("is_available")
+  verificationStatus String @default("PENDING") @map("verification_status")
+  serviceAreas    String[] @map("service_areas")
+  specializations String[]
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  availability TechnicianAvailability[]
+
+  @@map("technician_profiles")
+}
+
+model TechnicianAvailability {
+  id           String  @id @default(uuid())
+  technicianId String  @map("technician_id")
+  dayOfWeek    Int     @map("day_of_week")
+  startTime    String  @map("start_time")
+  endTime      String  @map("end_time")
+  isAvailable  Boolean @default(true) @map("is_available")
+
+  technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@unique([technicianId, dayOfWeek])
+  @@map("technician_availability")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceTier {
+  STANDARD
+  PREMIUM
+  DELUXE
+}
+
+enum PaymentMethod {
+  COD
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  INITIATED
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// ============================================
+// SERVICES MICROSERVICE MODELS
+// ============================================
+
+model ServiceCategory {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?   // Lucide icon name (e.g., "Wrench", "Sparkles")
+  isActive    Boolean   @default(true) @map("is_active")
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  services Service[]
+  features CategoryFeature[]
+  steps    CategoryStep[]
+
+  @@map("service_categories")
+}
+
+model CategoryFeature {
+  id         String   @id @default(uuid())
+  categoryId String   @map("category_id")
+  text       String
+  icon       String?
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  category ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("category_features")
+}
+
+model CategoryStep {
+  id          String   @id @default(uuid())
+  categoryId  String   @map("category_id")
+  stepNumber  Int      @map("step_number")
+  title       String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  category ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, stepNumber])
+  @@map("category_steps")
+}
+
+model Service {
+  id          String          @id @default(uuid())
+  categoryId  String          @map("category_id")
+  name        String
+  slug        String
+  description String?
+  icon        String?         // Lucide icon name
+  basePrice   Decimal         @map("base_price") @db.Decimal(10, 2)
+  duration    Int             // in minutes
+  isActive    Boolean         @default(true) @map("is_active")
+  sortOrder   Int             @default(0) @map("sort_order")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  category    ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, slug])
+  @@map("services")
+}
+
+// V1 + V2 operational request foundation. Detailed business objects expand independently.
+model ExpansionRequest {
+  id                   String            @id @default(uuid())
+  customerId           String            @map("customer_id")
+  kind                 String
+  status               String            @default("REQUESTED")
+  payload              Json
+  assignedTechnicianId String?           @map("assigned_technician_id")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+  events               ExpansionEvent[]
+  offers               ExpansionOffer[]
+  @@index([customerId, createdAt])
+  @@index([status, kind])
+  @@index([assignedTechnicianId])
+  @@map("expansion_requests")
+}
+
+model ExpansionEvent {
+  id          String           @id @default(uuid())
+  requestId   String           @map("request_id")
+  actorId     String           @map("actor_id")
+  event       String
+  metadata    Json             @default("{}")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  request     ExpansionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  @@index([requestId, createdAt])
+  @@map("expansion_events")
+}
+
+model ExpansionOffer {
+  id           String           @id @default(uuid())
+  requestId    String           @map("request_id")
+  technicianId String           @map("technician_id")
+  amount       Decimal          @db.Decimal(10, 2)
+  scope        String
+  status       String           @default("PROPOSED")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  request      ExpansionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  @@unique([requestId, technicianId])
+  @@index([technicianId])
+  @@map("expansion_offers")
+}

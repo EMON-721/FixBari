@@ -1,0 +1,10 @@
+export { CategoryHero } from "./category-hero";
+export { HowItWorksSection } from "./how-it-works-section";
+export { RelatedServicesSection } from "./related-services-section";
+export { ReviewsPlaceholderSection } from "./reviews-placeholder-section";
+export { ServiceCard } from "./service-card";
+export { ServiceCardsGrid } from "./service-cards-grid";
+export { ServiceDetailHero } from "./service-detail-hero";
+export { StarRating } from "./star-rating";
+export { StickyMobileBookingBar } from "./sticky-mobile-booking-bar";
+export { WhatsIncludedSection } from "./whats-included-section";

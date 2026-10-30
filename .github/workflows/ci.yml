@@ -2,20 +2,13 @@ name: FixBari CI — build, database and browser smoke
 on:
   push:
     branches: [main]
-    paths:
-      - 'apps/**'
-      - 'services/**'
-      - 'packages/**'
-      - 'tests/**'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/ci.yml'
   pull_request:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   build:
-    name: All apps and TypeScript services
+    name: All apps & TypeScript services
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -63,7 +56,7 @@ jobs:
       - run: python services/payment/manage.py check
       - run: python services/payment/manage.py migrate --noinput
   browser-preview:
-    name: Chromium browser E2E (offline preview)
+    name: Browser E2E (offline preview, no gateway)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

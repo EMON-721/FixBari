@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "payment-service"
+version = "1.0.0"
+description = "Payment microservice for FixBari"
+package-mode = false
+
+[project]
+name = "payment-service"
+version = "1.0.0"
+description = "Payment microservice for FixBari"
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "django>=5.1.0",
+    "djangorestframework>=3.15.0",
+    "psycopg[binary]>=3.2.0",
+    "pika>=1.3.0",
+    "python-dotenv>=1.0.0",
+    "gunicorn>=23.0.0",
+    "dj-database-url>=2.3.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-django>=4.9.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["payment_service"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

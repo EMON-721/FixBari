@@ -1,0 +1,11 @@
+"use client";
+import {useEffect,useState,type FormEvent} from "react";
+import {jobsApi} from "@/lib/api";
+import {storage} from "@/lib/storage";
+export default function ProfilePage(){
+ const [phone,setPhone]=useState(""),[areas,setAreas]=useState(""),[skills,setSkills]=useState(""),[available,setAvailable]=useState(true),[name,setName]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
+ useEffect(()=>{const token=storage.getAccessToken();if(!token)return;jobsApi.getProfile(token).then(r=>{if(!r.data)return;const p=r.data;setName(`${p.firstName} ${p.lastName}`);setPhone(p.phone||"");setAreas(p.serviceAreas.join(", "));setSkills(p.specializations.join(", "));setAvailable(p.isAvailable)}).catch(e=>setMessage(e.message))},[]);
+ async function save(e:FormEvent){e.preventDefault();const token=storage.getAccessToken();if(!token)return;setBusy(true);setMessage("");try{await jobsApi.updateProfile({phone,serviceAreas:areas.split(",").map(x=>x.trim()).filter(Boolean),specializations:skills.split(",").map(x=>x.trim()).filter(Boolean),isAvailable:available},token);setMessage("Profile updated.")}catch(e){setMessage(e instanceof Error?e.message:"Update failed")}finally{setBusy(false)}}
+ return <div className="p-4 lg:p-8 max-w-3xl space-y-6"><h1 className="text-3xl font-bold">Technician profile</h1><p>{name||"Your profile"}</p>{message&&<p role="status" className="bg-amber-50 rounded-lg p-3">{message}</p>}
+ <form onSubmit={save} className="bg-white p-6 rounded-xl border space-y-5"><label className="block">Phone number<input className="w-full mt-2 p-3 border rounded-lg" value={phone} onChange={e=>setPhone(e.target.value)} /></label><label className="block">Service areas (comma separated)<input className="w-full mt-2 p-3 border rounded-lg" value={areas} onChange={e=>setAreas(e.target.value)}/></label><label className="block">Specializations (comma separated)<input className="w-full mt-2 p-3 border rounded-lg" value={skills} onChange={e=>setSkills(e.target.value)}/></label><label className="flex gap-3"><input type="checkbox" checked={available} onChange={e=>setAvailable(e.target.checked)}/>Available for assignments</label><button disabled={busy} className="px-5 py-3 rounded-lg bg-amber-500 text-white font-bold">{busy?"Saving...":"Save profile"}</button></form></div>;
+}

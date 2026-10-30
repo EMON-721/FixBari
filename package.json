@@ -1,0 +1,24 @@
+{
+  "name": "fixbari",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev --filter=@local-services/web --filter=@local-services/admin --filter=@local-services/technician --filter=@local-services/auth --filter=@local-services/orders --filter=@local-services/services",
+    "dev:frontend": "turbo dev --filter=@local-services/web --filter=@local-services/admin --filter=@local-services/technician",
+    "dev:backend": "turbo dev --filter=@local-services/auth --filter=@local-services/orders",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "clean": "turbo clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "verify:preview": "python tests/browser_preview_e2e.py"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3"
+  },
+  "packageManager": "pnpm@9.15.1",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

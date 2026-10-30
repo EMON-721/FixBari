@@ -1,0 +1,18 @@
+# Traefik Static Configuration for Local Development
+# Run with: traefik --configFile=infrastructure/traefik/traefik.yml
+
+api:
+  dashboard: true
+  insecure: true  # Accessible at http://localhost:8080
+
+entryPoints:
+  web:
+    address: ":80"
+
+providers:
+  file:
+    filename: infrastructure/traefik/dynamic.yml
+    watch: true
+
+log:
+  level: INFO

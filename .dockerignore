@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+**/.next
+dist
+**/dist
+
+# Development files
+.git
+.gitignore
+*.md
+.env*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Turbo
+.turbo
+**/.turbo
+
+# Test & coverage
+coverage
+**/*.test.ts
+**/*.spec.ts
+
+# Python
+__pycache__
+*.pyc
+.venv
+venv

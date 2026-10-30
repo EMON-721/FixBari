@@ -1,0 +1,138 @@
+# Traefik Dynamic Configuration for Local Development
+# Routes all services running locally
+
+http:
+  # CORS Middleware
+  middlewares:
+    cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - Content-Type
+          - Authorization
+          - X-Requested-With
+        accessControlAllowOriginList:
+          - "http://localhost:3000"
+          - "http://localhost:3010"
+          - "http://localhost:3020"
+          - "http://localhost"
+          - "http://admin.localhost"
+          - "http://technician.localhost"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 86400
+
+  routers:
+    # API Routes - Higher priority than frontend routes
+    auth:
+      rule: "PathPrefix(`/api/auth`)"
+      entryPoints:
+        - web
+      service: auth
+      middlewares:
+        - cors
+      priority: 100
+
+    notifications:
+      rule: "PathPrefix(`/api/notifications`)"
+      entryPoints:
+        - web
+      service: notifications
+      middlewares:
+        - cors
+      priority: 100
+
+    orders:
+      rule: "PathPrefix(`/api/orders`)"
+      entryPoints:
+        - web
+      service: orders
+      middlewares:
+        - cors
+      priority: 100
+
+    payment:
+      rule: "PathPrefix(`/api/payment`)"
+      entryPoints:
+        - web
+      service: payment
+      middlewares:
+        - cors
+      priority: 100
+
+    services-api:
+      rule: "PathPrefix(`/api/services`)"
+      entryPoints:
+        - web
+      service: services-api
+      middlewares:
+        - cors
+      priority: 100
+
+    # Frontend Routes
+    admin:
+      rule: "Host(`admin.localhost`)"
+      entryPoints:
+        - web
+      service: admin
+      priority: 10
+
+    technician:
+      rule: "Host(`technician.localhost`)"
+      entryPoints:
+        - web
+      service: technician
+      priority: 10
+
+    web:
+      rule: "Host(`localhost`)"
+      entryPoints:
+        - web
+      service: web
+      priority: 1
+
+  services:
+    auth:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3001"
+
+    notifications:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3002"
+
+    orders:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3003"
+
+    payment:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3004"
+
+    services-api:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3005"
+
+    web:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3000"
+
+    admin:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3010"
+
+    technician:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3020"

@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://local-services.com/schemas/events/user-created.json",
+  "title": "UserCreatedEvent",
+  "description": "Event emitted when a new user is created",
+  "type": "object",
+  "required": ["eventType", "timestamp", "correlationId", "payload"],
+  "properties": {
+    "eventType": {
+      "const": "user.created"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the event occurred"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for tracing related events"
+    },
+    "payload": {
+      "type": "object",
+      "required": ["userId", "email", "role"],
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["customer", "technician", "admin"]
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
