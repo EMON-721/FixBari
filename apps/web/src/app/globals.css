@@ -76,3 +76,13 @@ html {
   stroke-dashoffset: 100;
   animation: check-draw 0.6s ease-out 0.3s forwards;
 }
+
+/* FixBari customer site: unified ocean-teal design palette. */
+:root {
+  --primary: 174 72% 28%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 174 48% 94%;
+  --accent-foreground: 176 72% 19%;
+  --ring: 174 72% 28%;
+  --radius: 0.75rem;
+}
