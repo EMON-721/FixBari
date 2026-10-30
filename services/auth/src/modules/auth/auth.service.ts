@@ -7,6 +7,7 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs";
 import * as crypto from "crypto";
 import { verifyGoogleIdToken } from "./verify-google-token";
+import { decryptTotpSecret, encryptTotpSecret, matchingTotpStep, newTotpSecret, totpUri } from "./admin-totp";
 import { UserRole } from "@local-services/database";
 import { PrismaService } from "../../prisma/prisma.service";
 import { UsersService } from "../users/users.service";
@@ -77,16 +78,22 @@ export class AuthService {
       throw new UnauthorizedException("Account is disabled");
     }
 
+    if (user.role === UserRole.ADMIN) {
+      const mfa = await this.prisma.adminMfa.findUnique({where:{userId:user.id}});
+      if (mfa?.enabled) {
+        if (!loginDto.otpCode) throw new UnauthorizedException("Authenticator code required");
+        const step = matchingTotpStep(decryptTotpSecret(mfa.secretCipher),loginDto.otpCode);
+        if (step === null) throw new UnauthorizedException("Invalid authenticator code");
+        const updated = await this.prisma.adminMfa.updateMany({
+          where:{id:mfa.id,lastUsedStep:{lt:BigInt(step)}},data:{lastUsedStep:BigInt(step)}
+        });
+        if (updated.count !== 1) throw new UnauthorizedException("Authenticator code already used");
+      }
+    }
     const tokens = await this.generateTokens(user);
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
+      user: {id:user.id,email:user.email,firstName:user.firstName,lastName:user.lastName,role:user.role},
       ...tokens,
     };
   }
@@ -190,6 +197,32 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException("Invalid refresh token");
     }
+  }
+
+  async setupAdminMfa(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user || !user.isActive || user.role !== UserRole.ADMIN) throw new UnauthorizedException();
+    const prior = await this.prisma.adminMfa.findUnique({where:{userId}});
+    if (prior?.enabled) throw new ConflictException("MFA already enabled");
+    const secret = newTotpSecret();
+    const secretCipher = encryptTotpSecret(secret);
+    await this.prisma.adminMfa.upsert({
+      where:{userId},update:{secretCipher,lastUsedStep:BigInt(-1)},create:{userId,secretCipher}
+    });
+    return {otpAuthUrl:totpUri(secret,user.email),secretBase32:Buffer.from(secret,"hex").toString("hex")};
+  }
+
+  async confirmAdminMfa(userId:string,code:string) {
+    const mfa = await this.prisma.adminMfa.findUnique({where:{userId}});
+    if (!mfa || mfa.enabled) throw new UnauthorizedException("MFA setup unavailable");
+    const step = matchingTotpStep(decryptTotpSecret(mfa.secretCipher),code);
+    if (step === null) throw new UnauthorizedException("Invalid authenticator code");
+    const updated = await this.prisma.adminMfa.updateMany({
+      where:{id:mfa.id,enabled:false},data:{enabled:true,lastUsedStep:BigInt(step)}
+    });
+    if(updated.count !== 1) throw new UnauthorizedException("MFA setup already completed");
+    await this.prisma.authSession.deleteMany({where:{userId}});
+    return {enabled:true};
   }
 
   async logout(refreshToken: string) {
