@@ -3,17 +3,19 @@ import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 import { UsersService } from "../../users/users.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 interface JwtPayload {
   tokenUse: "access" | "refresh";
   sub: string;
   email: string;
   role: string;
+  mfa?: boolean;
 }
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService, private readonly usersService: UsersService) {
+  constructor(configService: ConfigService, private readonly usersService: UsersService, private readonly prisma: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -29,6 +31,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersService.findById(payload.sub);
     if (!user || !user.isActive) {
       throw new UnauthorizedException("Account disabled or unavailable");
+    }
+    if (user.role === "ADMIN") {
+      const mfa = await this.prisma.adminMfa.findUnique({where:{userId:user.id}});
+      if (mfa?.enabled && payload.mfa !== true) throw new UnauthorizedException("Admin MFA required");
     }
     return {
       id: user.id,
