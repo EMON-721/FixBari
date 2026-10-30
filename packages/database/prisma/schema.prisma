@@ -32,6 +32,7 @@ model AuthUser {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
+  adminMfa            AdminMfa?
   sessions            AuthSession[]
   passwordResetTokens PasswordResetToken[]
 
@@ -49,6 +50,18 @@ model PasswordResetToken {
   user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_reset_tokens")
+}
+
+model AdminMfa {
+  id            String   @id @default(uuid())
+  userId        String   @unique @map("user_id")
+  secretCipher  String   @map("secret_cipher")
+  enabled       Boolean  @default(false)
+  lastUsedStep  BigInt   @default(-1) @map("last_used_step")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_mfa")
 }
 
 model AuthSession {
