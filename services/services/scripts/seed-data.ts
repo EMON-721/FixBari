@@ -174,16 +174,22 @@ const services: Record<string, Array<{
   ],
 };
 
+
+const proposedCategories = [
+  {slug:"appliance-ac",name:"Appliance & AC",icon:"Snowflake",description:"Appliance repair and servicing", services:["Refrigerator Repair","Washing Machine Repair","Microwave Servicing","Water Purifier Servicing"]},
+  {slug:"pest-control",name:"Pest Control",icon:"Bug",description:"Household pest treatments",services:["Cockroach Control","Termite Treatment","Mosquito Control","Rodent Control"]},
+  {slug:"home-improvement",name:"Home Improvement",icon:"Hammer",description:"Home renovation and upkeep",services:["Carpentry","Tile Installation","Waterproofing","Glass and Aluminium Work"]},
+  {slug:"outdoor-maintenance",name:"Outdoor & Maintenance",icon:"Trees",description:"Outdoor and building maintenance",services:["Garden Maintenance","Water Tank Cleaning","Generator Servicing","CCTV Installation"]},
+];
+
+function slugify(name:string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+}
+
 async function seed() {
   console.log("Starting seed...");
 
-  // Delete existing data
-  console.log("Deleting existing data...");
-  await prisma.service.deleteMany({});
-  await prisma.categoryStep.deleteMany({});
-  await prisma.categoryFeature.deleteMany({});
-  await prisma.serviceCategory.deleteMany({});
-
+  // Non-destructive seed: never delete production services or existing bookings.
   // Create categories with features and steps
   console.log("Creating categories...");
   const categoryMap: Record<string, string> = {};
@@ -191,16 +197,10 @@ async function seed() {
   for (const cat of categories) {
     const { features, steps, ...categoryData } = cat;
 
-    const category = await prisma.serviceCategory.create({
-      data: {
-        ...categoryData,
-        features: {
-          create: features,
-        },
-        steps: {
-          create: steps,
-        },
-      },
+    const category = await prisma.serviceCategory.upsert({
+      where: {slug:cat.slug},
+      update: {}, // Do not overwrite administrator-managed settings.
+      create: {...categoryData,features:{create:features},steps:{create:steps}},
     });
 
     categoryMap[cat.slug] = category.id;
@@ -217,17 +217,33 @@ async function seed() {
     }
 
     for (const svc of categoryServices) {
-      await prisma.service.create({
-        data: {
-          ...svc,
-          categoryId,
-        },
+      await prisma.service.upsert({
+        where: {categoryId_slug:{categoryId,slug:svc.slug}},
+        update: {},
+        create: {...svc,categoryId},
       });
       console.log(`  Created service: ${svc.name}`);
     }
   }
 
-  console.log("Seed completed successfully!");
+  // Proposed services are stored for later administrator pricing and activation.
+  // Inactive entries must not accept bookings; zero is not a public quotation.
+  for (const [index, cat] of proposedCategories.entries()) {
+    const category = await prisma.serviceCategory.upsert({
+      where:{slug:cat.slug},
+      update:{},
+      create:{slug:cat.slug,name:cat.name,icon:cat.icon,description:cat.description,sortOrder:index+categories.length,isActive:false},
+    });
+    for (const [serviceIndex,name] of cat.services.entries()) {
+      const slug = slugify(name);
+      await prisma.service.upsert({
+        where:{categoryId_slug:{categoryId:category.id,slug}},
+        update:{},
+        create:{categoryId:category.id,name,slug,description:`${name} — quotation and availability require approval.`,icon:cat.icon,basePrice:0,duration:60,sortOrder:serviceIndex,isActive:false},
+      });
+    }
+  }
+  console.log("Seed completed: 24 original services retained/inserted; 16 proposals created inactive without destroying existing records.");
 }
 
 seed()
