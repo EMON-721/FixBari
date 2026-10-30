@@ -1,316 +1,55 @@
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
-import { Search, Star, Shield, Clock, Users, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
-import { servicesApi } from "@/lib/api";
-import { transformCategories, transformServices } from "@/lib/transforms";
-import { getCategoryIcon, getIcon } from "@/lib/icons";
+import { SERVICE_CATEGORIES } from "@/config/service-categories";
+import { SUB_SERVICES } from "@/config/sub-services";
+import { SearchBar } from "@/components/home/search-bar";
 
-export const metadata = {
-  title: "All Services | FixBari",
-  description: "Browse all professional home services. From cleaning to repairs, find verified professionals for every need.",
-};
-
-// Stats data
-const stats = [
-  { value: "Browse", label: "Categories", icon: Users },
-  { value: "Compare", label: "Service options", icon: Shield },
-  { value: "Request", label: "Quotes", icon: Star },
-  { value: "Manage", label: "Bookings", icon: Clock },
+const extraGroups = [
+  {name:"Appliance & AC", items:["Refrigerator repair","Washing machine repair","Microwave servicing","Water purifier servicing"]},
+  {name:"Pest Control", items:["Cockroach control","Termite treatment","Mosquito control","Rodent control"]},
+  {name:"Home Improvement", items:["Carpentry","Tile installation","Waterproofing","Glass and aluminium work"]},
+  {name:"Outdoor & Maintenance", items:["Garden maintenance","Water tank cleaning","Generator servicing","CCTV installation"]},
 ];
 
-// Color schemes for categories
-const categoryColors: Record<string, { bg: string; icon: string; gradient: string }> = {
-  painting: { bg: "bg-orange-50", icon: "text-orange-500", gradient: "from-orange-500 to-amber-500" },
-  cleaning: { bg: "bg-blue-50", icon: "text-blue-500", gradient: "from-blue-500 to-cyan-500" },
-  electrical: { bg: "bg-yellow-50", icon: "text-yellow-600", gradient: "from-yellow-500 to-orange-500" },
-  plumbing: { bg: "bg-cyan-50", icon: "text-cyan-500", gradient: "from-cyan-500 to-blue-500" },
-  "home-repair": { bg: "bg-green-50", icon: "text-green-500", gradient: "from-green-500 to-emerald-500" },
-  transport: { bg: "bg-purple-50", icon: "text-purple-500", gradient: "from-purple-500 to-pink-500" },
-};
+export const metadata = { title:"All Services | FixBari", description:"Explore home service categories and individual services in Bangladesh." };
 
-export default async function ServicesPage() {
-  // Fetch all categories with their services
-  let apiCategories: Awaited<ReturnType<typeof servicesApi.getCategories>> = [];
-  let catalogAvailable = true;
-  try {
-    apiCategories = await servicesApi.getCategories({ includeServices: true });
-  } catch {
-    catalogAvailable = false;
-  }
-  const totalServices = apiCategories.reduce(
-    (acc, cat) => acc + (cat._count?.services || cat.services?.length || 0),
-    0
-  );
-
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
-
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-slate-950 via-teal-950 to-slate-900 text-white overflow-hidden">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }} />
-          </div>
-
-          {/* Gradient Orbs */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
-
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-            <div className="text-center max-w-3xl mx-auto">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span>{totalServices}+ Services Available</span>
-              </div>
-
-              {/* Title */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Find the Perfect
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-cyan-200">
-                  Service for Your Home
-                </span>
-              </h1>
-
-              {/* Description */}
-              <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                Browse our complete catalog of professional home services.
-                Explore categories and compare options. Booking and live prices depend on availability.
-              </p>
-
-              {/* Search Bar */}
-              <div className="max-w-xl mx-auto">
-                <Link
-                  href="/search"
-                  className="flex items-center gap-3 px-6 py-4 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow group"
-                >
-                  <Search className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
-                  <span className="text-gray-500 flex-1 text-left">Search for any service...</span>
-                  <span className="px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg">
-                    Search
-                  </span>
-                </Link>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mt-12">
-                {stats.map((stat) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={stat.label} className="text-center">
-                      <div className="inline-flex items-center justify-center w-10 h-10 bg-white/10 rounded-xl mb-2">
-                        <Icon className="w-5 h-5 text-primary" />
-                      </div>
-                      <p className="text-2xl sm:text-3xl font-bold">{stat.value}</p>
-                      <p className="text-sm text-gray-400">{stat.label}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+export default function ServicesPage() {
+  return <div className="min-h-screen bg-slate-50 text-slate-900">
+    <Header />
+    <main>
+      <section className="bg-gradient-to-br from-teal-950 via-teal-900 to-slate-900 px-5 py-20 text-white">
+        <div className="mx-auto max-w-6xl">
+          <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-cyan-200">FixBari · Services</p>
+          <h1 className="max-w-3xl text-4xl font-extrabold leading-tight sm:text-6xl">Everything your home needs, in one place.</h1>
+          <p className="mt-5 max-w-2xl text-lg text-teal-100">Browse the original FixBari service catalog and additional planned services. Booking requires our live backend.</p>
+          <div className="mt-8"><SearchBar placeholder="Search available home services" /></div>
+        </div>
+      </section>
+      <nav aria-label="Service categories" className="sticky top-16 z-20 border-b border-teal-100 bg-white/95 px-4 py-4 shadow-sm backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap gap-2">
+          {SERVICE_CATEGORIES.map(category=><a key={category.id} href={`#${category.slug}`} className="rounded-full border border-teal-200 px-4 py-2 text-sm font-semibold text-teal-900 hover:bg-teal-50">{category.name}</a>)}
+          <a href="#more-services" className="rounded-full bg-teal-800 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">More services</a>
+        </div>
+      </nav>
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        <div role="status" className="mb-12 rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm text-slate-700">Catalog preview: services below come from the original uploaded project. Listed reference prices are illustrative, not confirmed quotes. Live bookings and availability are temporarily offline.</div>
+        {SERVICE_CATEGORIES.map(category=>{
+          const services=SUB_SERVICES.filter(service=>service.categoryId===category.slug);
+          const Icon=category.icon;
+          return <section id={category.slug} key={category.id} className="scroll-mt-40 pb-16">
+            <div className="mb-6 flex items-center gap-4"><div className="rounded-2xl bg-teal-100 p-3 text-teal-800"><Icon className="h-7 w-7"/></div><div><h2 className="text-2xl font-bold sm:text-3xl">{category.name}</h2><p className="text-sm text-slate-500">{category.description}</p></div></div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{services.map(service=><Link href={`/services/${category.slug}/${service.slug}`} key={service.id} className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-teal-300 hover:shadow-lg">
+              <div className="mb-4 flex items-center justify-between"><service.icon className="h-7 w-7 text-teal-700"/><span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-800">View details</span></div>
+              <h3 className="text-lg font-bold group-hover:text-teal-800">{service.name}</h3><p className="mt-1 text-sm text-slate-500">{service.nameLocal}</p><p className="mt-3 text-sm text-slate-600">{service.description}</p><p className="mt-4 border-t border-slate-100 pt-3 text-sm font-semibold text-teal-900">Reference price: ৳{service.price.toLocaleString()}</p>
+            </Link>)}</div>
+          </section>;
+        })}
+        <section id="more-services" className="scroll-mt-40 border-t border-slate-200 pt-12">
+          <h2 className="text-3xl font-bold">Additional service ideas</h2>
+          <p className="mt-2 text-slate-600">Planned categories; not available for booking until providers and backend records are activated.</p>
+          <div className="mt-8 grid gap-5 md:grid-cols-2">{extraGroups.map(group=><div key={group.name} className="rounded-2xl border border-slate-200 bg-white p-6"><h3 className="text-xl font-bold text-teal-900">{group.name}</h3><ul className="mt-4 space-y-2">{group.items.map(item=><li className="text-slate-600" key={item}>• {item}</li>)}</ul></div>)}</div>
         </section>
-
-        {/* Categories Section */}
-        <section className="py-16 sm:py-20 lg:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Section Header */}
-            <div className="text-center mb-12 sm:mb-16">
-              <span className="inline-block text-primary font-semibold text-sm uppercase tracking-wider mb-3">
-                Browse by Category
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                All Service Categories
-              </h2>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                Select a category to explore all available services and find the perfect solution for your needs.
-              </p>
-            </div>
-
-            {/* Categories with Services */}
-            <div className="space-y-12 sm:space-y-16">
-              {!catalogAvailable && <div role="status" className="rounded-2xl border border-teal-200 bg-teal-50 p-8 text-center text-slate-800"><h3 className="text-xl font-semibold">Service catalog temporarily unavailable</h3><p className="mt-2">Our services API is not connected yet. Please check back when live listings return.</p></div>}
-              {apiCategories.map((category) => {
-                const Icon = getCategoryIcon(category.slug, category.icon);
-                const services = category.services || [];
-                const colors = categoryColors[category.slug] || { bg: "bg-primary/10", icon: "text-primary", gradient: "from-teal-700 to-cyan-700" };
-
-                return (
-                  <div key={category.id} className="relative">
-                    {/* Category Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-14 h-14 ${colors.bg} rounded-2xl flex items-center justify-center`}>
-                          <Icon className={`w-7 h-7 ${colors.icon}`} strokeWidth={1.5} />
-                        </div>
-                        <div>
-                          <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
-                            {category.name}
-                          </h3>
-                          <p className="text-gray-500">{services.length} services available</p>
-                        </div>
-                      </div>
-                      <Link
-                        href={`/services/${category.slug}`}
-                        className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
-                      >
-                        View All
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </div>
-
-                    {/* Services Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {services.map((service) => {
-                        const ServiceIcon = getIcon(service.icon);
-                        const price = typeof service.basePrice === "string"
-                          ? parseFloat(service.basePrice)
-                          : service.basePrice;
-                        return (
-                          <Link
-                            key={service.id}
-                            href={`/services/${category.slug}/${service.slug}`}
-                            className="group relative bg-white rounded-2xl border border-gray-100 p-5 hover:border-gray-200 hover:shadow-lg transition-all duration-300"
-                          >
-                            {/* Service Icon */}
-                            <div className={`w-12 h-12 ${colors.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                              <ServiceIcon className={`w-6 h-6 ${colors.icon}`} strokeWidth={1.5} />
-                            </div>
-
-                            {/* Service Info */}
-                            <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-primary transition-colors">
-                              {service.name}
-                            </h4>
-                            <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                              {service.description}
-                            </p>
-
-                            {/* Price & Rating */}
-                            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                              <div>
-                                <span className="text-lg font-bold text-gray-900">
-                                  {price.toLocaleString()}
-                                </span>
-                                <span className="text-sm text-gray-500"> tk</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                                <span className="text-sm font-medium text-gray-700">
-                                  4.5
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Hover Arrow */}
-                            <div className="absolute top-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ArrowRight className="w-5 h-5 text-gray-400" />
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Trust Section */}
-        <section className="py-16 sm:py-20 bg-white border-t border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-                Why Choose Our Services?
-              </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Every service provider on our platform goes through a rigorous verification process.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  title: "Verified Professionals",
-                  description: "All service providers are background checked and verified",
-                  icon: Shield,
-                  color: "bg-green-50 text-green-600",
-                },
-                {
-                  title: "Transparent Pricing",
-                  description: "No hidden fees. Know the cost before you book",
-                  icon: CheckCircle2,
-                  color: "bg-blue-50 text-blue-600",
-                },
-                {
-                  title: "Satisfaction Guaranteed",
-                  description: "Not happy? We'll make it right or refund you",
-                  icon: Star,
-                  color: "bg-amber-50 text-amber-600",
-                },
-                {
-                  title: "24/7 Support",
-                  description: "Our support team is always ready to help",
-                  icon: Clock,
-                  color: "bg-purple-50 text-purple-600",
-                },
-              ].map((feature) => {
-                const FeatureIcon = feature.icon;
-                return (
-                  <div
-                    key={feature.title}
-                    className="text-center p-6 rounded-2xl bg-gray-50 border border-gray-100"
-                  >
-                    <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                      <FeatureIcon className="w-7 h-7" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-500">{feature.description}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-16 sm:py-20 bg-gradient-to-r from-primary to-amber-500">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-              Can&apos;t Find What You&apos;re Looking For?
-            </h2>
-            <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
-              Contact us and we&apos;ll help you find the perfect service provider for your specific needs.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href="/services"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                Browse Services
-              </a>
-              <Link
-                href="/search"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/30 hover:bg-white/30 transition-all"
-              >
-                <Search className="w-5 h-5" />
-                Search Services
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
-  );
+      </div>
+    </main><Footer />
+  </div>;
 }
