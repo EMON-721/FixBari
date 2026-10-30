@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Star, Users, CheckCircle, ArrowRight } from "lucide-react";
+import { Star, Users, CheckCircle } from "lucide-react";
 import { SearchBar } from "./search-bar";
 
 interface HeroSectionProps {
@@ -11,7 +11,7 @@ interface HeroSectionProps {
 export function HeroSection({ className = "" }: HeroSectionProps) {
   return (
     <section
-      className={`relative overflow-hidden bg-gradient-to-br from-primary via-primary to-amber-600 ${className}`}
+      className={`relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 ${className}`}
     >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
@@ -20,25 +20,25 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-center min-h-[500px] lg:min-h-[550px] py-12 lg:py-0">
+        <div className="flex flex-col lg:flex-row items-center min-h-[480px] lg:min-h-[540px] py-12 lg:py-0">
           {/* Left Content */}
           <div className="flex-1 text-center lg:text-left py-8 lg:py-16 z-10">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-              <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
               <span className="text-white text-sm font-medium">
-                Find local help across Bangladesh
+                FIXBARI · HOME SERVICES
               </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Find Your Perfect
-              <span className="block mt-2 text-white/90">
-                Home Service Expert
+              Home services,
+              <span className="block mt-2 text-amber-400">
+                made simple.
               </span>
             </h1>
 
-            <p className="text-white/80 text-lg sm:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
+            <p className="text-slate-200 text-lg sm:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
               Connect with verified professionals for painting, cleaning,
               electrical, plumbing, and more. Quality service, guaranteed.
             </p>
@@ -56,7 +56,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
                 </div>
                 <div className="text-left">
                   <p className="text-white font-bold text-lg">Local</p>
-                  <p className="text-white/70 text-sm">Service Pros</p>
+                  <p className="text-slate-300 text-sm">Service Pros</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
                   <CheckCircle className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <p className="text-white font-bold text-lg">Easy</p>
+                  <p className="text-white font-bold text-lg">Simple</p>
                   <p className="text-white/70 text-sm">Booking</p>
                 </div>
               </div>
@@ -101,8 +101,8 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
                       <CheckCircle className="w-6 h-6 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">Verified Pros</p>
-                      <p className="text-sm text-gray-500">Background checked</p>
+                      <p className="font-semibold text-gray-900">Local Professionals</p>
+                      <p className="text-sm text-gray-500">Explore available services</p>
                     </div>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
                       <Star className="w-6 h-6 text-primary fill-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">Top Rated</p>
+                      <p className="font-semibold text-gray-900">Home Service</p>
                       <div className="flex gap-0.5">
                         {[1, 2, 3, 4, 5].map((i) => (
                           <Star
