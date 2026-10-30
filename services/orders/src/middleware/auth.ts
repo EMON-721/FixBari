@@ -7,6 +7,7 @@ interface JwtPayload {
   tokenUse: "access" | "refresh";
   email: string;
   role: string;
+  mfa?: boolean;
 }
 
 declare global {
@@ -38,6 +39,9 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
 
     if (payload.tokenUse !== "access" || !payload.sub) {
       throw new AppError(401, "Access token required", "UNAUTHORIZED");
+    }
+    if (payload.role === "ADMIN" && process.env.REQUIRE_ADMIN_MFA === "true" && payload.mfa !== true) {
+      throw new AppError(401, "Admin MFA required", "UNAUTHORIZED");
     }
     req.user = {
       id: payload.sub,
