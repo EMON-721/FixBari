@@ -184,6 +184,53 @@ export default async function ServiceDetailPage({
     const item = getSubService(categorySlug, serviceSlug);
     if (!item) notFound();
     const Icon = item.icon;
-    return <div className="min-h-screen bg-slate-50"><Header/><main className="mx-auto max-w-4xl px-5 py-12"><Link href={`/services/${categorySlug}`} className="text-teal-800">← Back to category</Link><div className="mt-8 rounded-3xl bg-white p-8 shadow-sm"><Icon className="h-12 w-12 text-teal-800"/><h1 className="mt-5 text-3xl font-bold text-slate-950">{item.name}</h1><p className="mt-2 text-slate-500">{item.nameLocal}</p><p className="mt-6 text-lg text-slate-700">{item.description}</p><div className="mt-6 grid gap-4 sm:grid-cols-2"><div className="rounded-xl bg-slate-50 p-4"><p className="text-xs uppercase text-slate-500">Reference price</p><p className="text-xl font-bold text-teal-800">{item.price > 0 ? `৳${item.price.toLocaleString()}` : "To be confirmed"}</p></div><div className="rounded-xl bg-slate-50 p-4"><p className="text-xs uppercase text-slate-500">Typical duration</p><p className="text-xl font-bold text-teal-800">{item.duration}</p></div></div><p className="mt-7 text-sm text-slate-600">Final price and appointment availability are confirmed after a service request is reviewed.</p><div className="mt-6 flex flex-wrap gap-3"><Link href={`/book?service=${encodeURIComponent(item.id)}`} className="inline-block rounded-xl bg-teal-800 px-6 py-3 font-semibold text-white hover:bg-teal-700">Request booking</Link><Link href="/services" className="inline-block rounded-xl border border-teal-200 px-6 py-3 font-semibold text-teal-800 hover:bg-teal-50">Browse other services</Link></div></div></main><Footer/></div>;
+    const isPriced = item.price > 0;
+    const bookingUrl = `/book?service=${encodeURIComponent(item.id)}`;
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Header/>
+        <main>
+          <section className="bg-gradient-to-br from-teal-950 via-teal-900 to-slate-900 px-5 py-12 text-white sm:py-20">
+            <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-5">
+              <div className="lg:col-span-3">
+                <Link href={`/services/${categorySlug}`} className="text-sm text-teal-100 hover:text-white">All services / {categorySlug.replace(/-/g," ")}</Link>
+                <div className="mt-7 inline-flex rounded-2xl bg-white/10 p-5"><Icon className="h-12 w-12 text-cyan-200"/></div>
+                <h1 className="mt-5 text-4xl font-extrabold sm:text-5xl">{item.name}</h1>
+                <p className="mt-2 text-xl text-teal-100">{item.nameLocal}</p>
+                <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-200">{item.description}</p>
+                <div className="mt-7 flex flex-wrap gap-3 text-sm">
+                  <span className="rounded-full border border-white/20 px-4 py-2">Estimated duration: {item.duration}</span>
+                  <span className="rounded-full border border-white/20 px-4 py-2">Bangladesh home services</span>
+                </div>
+              </div>
+              <div className="lg:col-span-2">
+                <div className="rounded-3xl bg-white p-7 text-slate-900 shadow-xl">
+                  <p className="text-sm font-medium text-slate-500">{isPriced ? "Illustrative starting price" : "Quotation required"}</p>
+                  <p className="mt-2 text-4xl font-bold text-teal-900">{isPriced ? `৳${item.price.toLocaleString()}` : "Price on request"}</p>
+                  <p className="mt-4 text-sm leading-relaxed text-slate-600">Select a package, schedule, location and payment preference. Final availability and charges are confirmed through the booking system.</p>
+                  <Link href={bookingUrl} className="mt-7 flex w-full justify-center rounded-xl bg-teal-800 px-5 py-4 font-bold text-white hover:bg-teal-700">{isPriced ? "Continue to Booking" : "Request a Quotation"}</Link>
+                  <p className="mt-3 text-center text-xs text-slate-500">No payment is collected on this details page.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section className="mx-auto max-w-6xl px-5 py-14">
+            <h2 className="text-3xl font-bold text-slate-950">About this service</h2>
+            <p className="mt-4 max-w-3xl text-lg text-slate-600">{item.description}</p>
+            <h2 className="mt-14 text-3xl font-bold text-slate-950">How booking works</h2>
+            <div className="mt-7 grid gap-4 md:grid-cols-4">
+              {[
+                ["01","Choose service","Review service details and select a package"],
+                ["02","Set schedule","Enter service address, date and time"],
+                ["03","Review payment","Choose COD or online payment where available"],
+                ["04","Track request","Receive a booking ID only when the backend accepts your request"]
+              ].map(([number,title,description])=><div key={number} className="rounded-2xl border border-slate-200 bg-white p-6"><span className="font-bold text-teal-700">{number}</span><h3 className="mt-4 text-lg font-bold">{title}</h3><p className="mt-2 text-sm text-slate-600">{description}</p></div>)}
+            </div>
+            <div className="mt-10 flex gap-4"><Link href={bookingUrl} className="rounded-xl bg-teal-800 px-6 py-3 font-bold text-white">Continue</Link><Link href="/services" className="rounded-xl border border-teal-300 px-6 py-3 font-semibold text-teal-900">All services</Link></div>
+          </section>
+        </main>
+        <Footer/>
+      </div>
+    );
   }
 }
