@@ -40,7 +40,18 @@ export function matchingTotpStep(secret:string, code:string, now=Date.now()):num
   }
   return null;
 }
+function base32(hex: string): string {
+  const alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  const bytes=Buffer.from(hex,"hex");
+  let bits=0,value=0,out="";
+  for (const byte of bytes) {
+    value=(value<<8)|byte; bits+=8;
+    while (bits>=5) {out+=alphabet[(value>>>(bits-5))&31];bits-=5;}
+  }
+  if(bits>0) out+=alphabet[(value<<(5-bits))&31];
+  return out;
+}
 export function totpUri(secret:string,email:string):string {
   const label=encodeURIComponent("FixBari:"+email);
-  return `otpauth://totp/${label}?secret=${Buffer.from(secret,"hex").toString("base64").replace(/=/g,"")}&issuer=FixBari&algorithm=SHA1&digits=6&period=30`;
+  return `otpauth://totp/${label}?secret=${base32(secret)}&issuer=FixBari&algorithm=SHA1&digits=6&period=30`;
 }
