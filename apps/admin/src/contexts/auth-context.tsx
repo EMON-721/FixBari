@@ -134,6 +134,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(() => {
+    const refreshToken=storage.getRefreshToken();
+    if (refreshToken) void authApi.logout(refreshToken).catch(() => { /* local logout still proceeds if offline */ });
     storage.clearAuth();
     setState({ user: null, isAuthenticated: false, isLoading: false });
     router.push("/login");
