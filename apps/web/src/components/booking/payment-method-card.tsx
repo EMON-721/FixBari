@@ -50,7 +50,7 @@ export function PaymentMethodCard({
               <span className="font-medium text-gray-900">Pay Online</span>
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              Pay securely with Card, bKash, Nagad, Rocket, or Internet Banking
+              Online checkout via SSLCOMMERZ, subject to gateway availability. Available payment methods are shown by the gateway.
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
               <span className="px-2 py-1 bg-blue-100 rounded text-xs font-medium text-blue-700">
@@ -108,7 +108,7 @@ export function PaymentMethodCard({
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Shield className="w-4 h-4 text-green-500" />
-          <span>Secured by SSLCOMMERZ - Bangladesh&apos;s trusted payment gateway</span>
+          <span>Online payments require an active and verified payment gateway</span>
         </div>
       </div>
     </div>
