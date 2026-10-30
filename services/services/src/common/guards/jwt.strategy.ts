@@ -8,6 +8,7 @@ interface JwtPayload {
   sub: string;
   email: string;
   role: string;
+  mfa?: boolean;
 }
 
 @Injectable()
@@ -22,6 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload) {
     if (payload.tokenUse !== "access") throw new UnauthorizedException("Access token required");
+    if (payload.role === "ADMIN" && process.env.REQUIRE_ADMIN_MFA === "true" && payload.mfa !== true) throw new UnauthorizedException("Admin MFA required");
     return {
       id: payload.sub,
       email: payload.email,
