@@ -87,6 +87,12 @@ export class BookingService {
     dto: CreateBookingDto,
     userInfo?: { name: string; email: string; phone: string }
   ): Promise<BookingResponseDto> {
+    // FixBari currently accepts only Cash on Delivery. Keep payment gateway code
+    // for a future explicitly reviewed release, but block ONLINE at the API boundary.
+    if (dto.paymentMethod !== "COD") {
+      throw new AppError(400, "Only Cash on Delivery is available for FixBari bookings", "PAYMENT_METHOD_UNAVAILABLE");
+    }
+
     // Fetch service details
     const service = await prisma.service.findUnique({
       where: { id: dto.serviceId, isActive: true },
