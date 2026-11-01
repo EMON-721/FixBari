@@ -23,6 +23,9 @@ import { ServiceFormModal } from "@/components/services/service-form-modal";
 import { CategoryFormModal } from "@/components/services/category-form-modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { Service, ServiceCategory } from "@/lib/api";
+import { servicesApi } from "@/lib/api";
+import { storage } from "@/lib/storage";
+import { FIXBARI_CATEGORIES, FIXBARI_SERVICES } from "@/config/fixbari-catalog";
 
 export default function ServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -36,6 +39,9 @@ export default function ServicesPage() {
   const [deletingCategory, setDeletingCategory] =
     useState<ServiceCategory | null>(null);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [importingCatalog, setImportingCatalog] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
+  const [importError, setImportError] = useState("");
 
   const { data: services, isLoading: servicesLoading } = useServices({
     includeInactive: true,
@@ -97,6 +103,63 @@ export default function ServicesPage() {
     }
   };
 
+  // Preserve existing Local Services records. Never overwrite live prices or statuses.
+  // New FixBari services are imported as INACTIVE pending explicit admin review.
+  const importFixBariCatalog = async () => {
+    const token = storage.getAccessToken();
+    if (!token) {
+      setImportError("Admin session expired. Sign in again.");
+      return;
+    }
+    setImportingCatalog(true);
+    setImportError("");
+    setImportMessage("");
+    let createdServices = 0;
+    let createdCategories = 0;
+    try {
+      const currentCategories = await servicesApi.getCategories({ includeInactive: true }, token);
+      const currentServices = await servicesApi.getServices({ includeInactive: true }, token);
+      const bySlug = new Map(currentCategories.map(category => [category.slug, category]));
+      const knownServices = new Set(currentServices.map(service => `${service.categoryId}:${service.slug}`));
+
+      for (const catalogCategory of FIXBARI_CATEGORIES) {
+        if (bySlug.has(catalogCategory.slug)) continue;
+        const created = await servicesApi.createCategory({
+          ...catalogCategory,
+          isActive: true,
+        }, token);
+        bySlug.set(created.slug, created);
+        createdCategories++;
+      }
+      for (const catalogService of FIXBARI_SERVICES) {
+        const category = bySlug.get(catalogService.categorySlug);
+        if (!category) throw new Error(`Category missing: ${catalogService.categorySlug}`);
+        const key = `${category.id}:${catalogService.slug}`;
+        if (knownServices.has(key)) continue;
+        await servicesApi.createService({
+          categoryId: category.id,
+          name: catalogService.name,
+          slug: catalogService.slug,
+          description: catalogService.description,
+          icon: catalogService.icon,
+          basePrice: catalogService.basePrice,
+          duration: catalogService.duration,
+          isActive: false, // Admin must review and explicitly publish each service.
+        }, token);
+        knownServices.add(key);
+        createdServices++;
+      }
+      setImportMessage(`Added ${createdCategories} categories and ${createdServices} services. Review the base prices and activate approved services below. Existing records were preserved.`);
+      // React Query hooks need fresh backend records after importing.
+      await Promise.resolve();
+      window.location.reload();
+    } catch (error) {
+      setImportError(`Import stopped after creating ${createdServices} services and ${createdCategories} categories. ${error instanceof Error ? error.message : "Try again"} Re-running only imports missing records.`);
+    } finally {
+      setImportingCatalog(false);
+    }
+  };
+
   if (servicesLoading || categoriesLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -115,7 +178,15 @@ export default function ServicesPage() {
             Manage service categories and pricing
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={importFixBariCatalog}
+            disabled={importingCatalog}
+            className="rounded-xl border border-primary/30 px-4 py-2.5 font-semibold text-primary hover:bg-primary/5 disabled:opacity-50"
+          >
+            {importingCatalog ? "Importing catalog..." : "Import FixBari additional services"}
+          </button>
           <button
             onClick={() => setShowCategoryManager(!showCategoryManager)}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
@@ -132,6 +203,13 @@ export default function ServicesPage() {
           </button>
         </div>
       </div>
+
+      {importError && <p role="alert" className="rounded-xl bg-red-50 p-4 text-red-800">{importError}</p>}
+      {importMessage && <p role="status" className="rounded-xl bg-green-50 p-4 text-green-900">{importMessage}</p>}
+      <p className="text-xs text-gray-500">
+        Import only adds missing services; existing Local Services data is preserved.
+        Imported services remain inactive until an admin reviews and activates them.
+      </p>
 
       {/* Category Manager (Collapsible) */}
       {showCategoryManager && (
