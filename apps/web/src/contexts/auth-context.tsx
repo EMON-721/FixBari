@@ -13,6 +13,15 @@ import { storage } from "@/lib/storage";
 import type { User, AuthState, LoginResponse, RegisterData } from "@/types/auth";
 
 const ALLOWED_ROLE = "CUSTOMER";
+function afterCustomerSignIn(): string {
+  // Only permit local paths; never allow a redirect to an external site.
+  const requested = new URLSearchParams(window.location.search).get("redirect");
+  if (requested && requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\\\")) {
+    return requested;
+  }
+  return "/dashboard";
+}
+
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -136,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
       });
 
-      router.push("/dashboard");
+      router.push(afterCustomerSignIn());
     },
     [router]
   );
@@ -148,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     storage.setRefreshToken(response.refreshToken);
     storage.setUser(response.user);
     setState({ user: response.user, isAuthenticated: true, isLoading: false });
-    router.push("/dashboard");
+    router.push(afterCustomerSignIn());
   }, [router]);
 
   const register = useCallback(
@@ -168,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
       });
 
-      router.push("/dashboard");
+      router.push(afterCustomerSignIn());
     },
     [router]
   );
