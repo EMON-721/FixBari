@@ -83,6 +83,13 @@ export function LoginForm() {
         </Link>
       </div>
 
+      <p className="text-xs leading-5 text-gray-600" role="note">
+        Admin access is invitation-only. Use the email and password of an account
+        explicitly assigned the ADMIN role; a customer signup does not grant admin
+        permissions. If you forgot your password, use the secure reset link above.
+        Never share your password or authenticator code with anyone.
+      </p>
+
       <Button
         type="submit"
         className="w-full h-12 text-base font-semibold"
