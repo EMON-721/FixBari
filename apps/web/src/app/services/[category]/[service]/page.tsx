@@ -185,7 +185,9 @@ export default async function ServiceDetailPage({
     if (!item) notFound();
     const Icon = item.icon;
     const isPriced = item.price > 0;
-    const bookingUrl = `/book?service=${encodeURIComponent(item.id)}`;
+    const bookingUrl = isPriced
+      ? `/book?service=${encodeURIComponent(item.id)}`
+      : `/dashboard/requests?kind=QUOTE&service=${encodeURIComponent(item.name)}`;
     return (
       <div className="min-h-screen bg-slate-50">
         <Header/>
