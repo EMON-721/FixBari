@@ -19,7 +19,7 @@ export class RegisterDto {
   lastName: string;
 
   @IsString()
-  @Matches(/^(?:\\+8801|01)[3-9]\\d{8}$/, { message: "Enter a valid Bangladeshi mobile number" })
+  @Matches(/^(?:\+8801|01)[3-9]\d{8}$/, { message: "Enter a valid Bangladeshi mobile number" })
   phone: string;
 
   @IsOptional()
