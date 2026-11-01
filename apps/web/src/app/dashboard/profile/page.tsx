@@ -7,13 +7,15 @@ import { Camera, Mail, Phone, MapPin, Shield, CheckCircle2 } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard";
 
 // The form is populated from the authenticated user endpoint; no example personal data.
-const emptyUser = { firstName:"", lastName:"", email:"", phone:"", address:"", area:"", city:"", division:"", postalCode:"", emailVerified:false, createdAt:"" };
+const emptyUser = { customerNumber: null as number | null, firstName:"", lastName:"", email:"", phone:"", address:"", area:"", city:"", division:"", postalCode:"", emailVerified:false, createdAt:"" };
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(emptyUser);
   const [message,setMessage] = useState("");
+  const [justRegistered, setJustRegistered] = useState(false);
   useEffect(() => {
+    setJustRegistered(new URLSearchParams(window.location.search).get("created") === "1");
     const token=storage.getAccessToken();if(!token)return;
     authApi.me(token).then(data => {
       const user=data as Partial<typeof emptyUser>;
@@ -45,6 +47,7 @@ export default function ProfilePage() {
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto space-y-6">
           {message && <p className="p-3 bg-amber-50 rounded-xl" role="status">{message}</p>}
+          {justRegistered && <p role="status" className="rounded-xl bg-teal-50 p-4 text-sm font-medium text-teal-900">Account created successfully. Your Customer ID is displayed below. You can now book services using Cash on Delivery.</p>}
           {/* Profile Header Card */}
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             {/* Cover */}
@@ -70,7 +73,12 @@ export default function ProfilePage() {
                   <h2 className="text-xl font-bold text-gray-900">
                     {formData.firstName} {formData.lastName}
                   </h2>
-                  <div className="flex items-center gap-4 mt-1">
+                  <div className="flex flex-wrap items-center gap-3 mt-2">
+                    {typeof formData.customerNumber === "number" && formData.customerNumber > 0 && (
+                      <span className="rounded-lg bg-teal-50 px-3 py-1.5 font-mono text-sm font-semibold text-teal-900" aria-label="Customer ID">
+                        Customer ID: FB-{String(formData.customerNumber).padStart(6, "0")}
+                      </span>
+                    )}
                     <span className="text-sm text-gray-500">
                       Member since {formData.createdAt}
                     </span>
