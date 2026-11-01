@@ -2,6 +2,7 @@ export type UserRole = "CUSTOMER" | "TECHNICIAN" | "ADMIN";
 
 export interface User {
   id: string;
+  customerNumber: number;
   email: string;
   firstName: string;
   lastName: string;
@@ -29,7 +30,7 @@ export interface RegisterData {
   password: string;
   firstName: string;
   lastName: string;
-  phone?: string;
+  phone: string;
   role?: "CUSTOMER" | "TECHNICIAN";
 }
 
