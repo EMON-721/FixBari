@@ -29,8 +29,8 @@ const bookingSchema = z.object({
   division: z.string().min(1, "Please select a division"),
   postalCode: z.string().min(4, "Valid postal code required"),
   additionalInfo: z.string().optional(),
-  paymentMethod: z.enum(["ONLINE", "COD"], {
-    message: "Please select a payment method",
+  paymentMethod: z.enum(["ONLINE", "COD"]).refine(value => value === "COD", {
+    message: "Only Cash on Delivery is available right now",
   }),
   customerName: z.string().optional(),
   customerEmail: z.string().email().optional().or(z.literal("")),
@@ -98,16 +98,8 @@ export function BookingForm({ service, catalogOnly = false }: BookingFormProps) 
         return;
       }
 
-      // For online payment, ensure customer info is provided
-      if (data.paymentMethod === "ONLINE") {
-        if (!data.customerName || !data.customerEmail || !data.customerPhone) {
-          // Use user info from auth context
-          data.customerName = data.customerName || (user?.firstName && user?.lastName
-            ? `${user.firstName} ${user.lastName}`
-            : "Customer");
-          data.customerEmail = data.customerEmail || user?.email || "";
-          data.customerPhone = data.customerPhone || "";
-        }
+      if (data.paymentMethod !== "COD") {
+        throw new Error("Only Cash on Delivery is available right now.");
       }
 
       // Static catalog IDs are not database UUIDs. Resolve the live service at submit time.
@@ -127,28 +119,14 @@ export function BookingForm({ service, catalogOnly = false }: BookingFormProps) 
         bookingData = {...data, serviceId: live.id};
       }
       const response = await bookingsApi.create(bookingData, token);
+      if (!response.success || !response.data?.bookingId) {
+        throw new Error("Booking was not confirmed by the server. Check My Bookings before retrying.");
+      }
       const booking = response.data;
 
-      // If online payment and gatewayUrl is provided, redirect to payment gateway
-      if (data.paymentMethod === "ONLINE" && booking.gatewayUrl) {
-        // Redirect to SSLCOMMERZ payment gateway
-        window.location.href = booking.gatewayUrl;
-        return;
-      }
+      // COD booking is saved as pending; no payment gateway or upfront charge.
+      const paymentStatus = "PENDING";
 
-      // Never claim checkout has completed when gateway initiation failed.
-      if (data.paymentMethod === "ONLINE" && !booking.gatewayUrl) {
-        router.push(`/book/error?type=server&message=${encodeURIComponent("Booking was saved as pending but online checkout is unavailable. Do not pay again until your booking status has been checked.")}&serviceId=${encodeURIComponent(service.id)}`);
-        return;
-      }
-
-      // If online payment but no gateway URL, payment initiation failed
-      // Still create booking but mark payment as pending
-      const paymentStatus = data.paymentMethod === "ONLINE" && !booking.gatewayUrl
-        ? "PENDING"
-        : booking.paymentStatus || "PENDING";
-
-      // For COD or if no gateway URL, redirect to success page
       const params = new URLSearchParams({
         bookingId: booking.bookingId,
         service: booking.serviceName,
@@ -192,51 +170,6 @@ export function BookingForm({ service, catalogOnly = false }: BookingFormProps) 
             selectedMethod={selectedPaymentMethod}
           />
 
-          {/* Customer Info for Online Payment */}
-          {selectedPaymentMethod === "ONLINE" && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Contact Information</h3>
-              <p className="text-sm text-gray-500 mb-4">Required for payment processing</p>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    {...register("customerName")}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="Your full name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    {...register("customerEmail")}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="your@email.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    {...register("customerPhone")}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="01XXXXXXXXX"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Fourth Card: Price Details */}
