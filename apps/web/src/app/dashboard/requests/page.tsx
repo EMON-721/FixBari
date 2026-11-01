@@ -40,6 +40,10 @@ export default function RequestsPage() {
     setRecords(response.data);
   };
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("kind") === "QUOTE") setKind("QUOTE");
+    const requestedService = params.get("service");
+    if (requestedService) setSubject(requestedService.slice(0, 150));
     refresh().catch(e=>setError(e.message));
     servicesApi.getServices().then(data=>{
       const list = Array.isArray(data) ? (data as Service[]) : [];
