@@ -18,8 +18,8 @@ export const registerSchema = z
       .regex(/[a-z]/, "Password must contain at least one lowercase letter")
       .regex(/[0-9]/, "Password must contain at least one number"),
     confirmPassword: z.string(),
-    phone: z.string().optional(),
-    role: z.enum(["CUSTOMER", "TECHNICIAN"]),
+    phone: z.string().regex(/^(?:\\+8801|01)[3-9]\\d{8}$/, "Enter a valid Bangladeshi mobile number"),
+    role: z.literal("CUSTOMER"),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: "You must accept the terms and conditions",
     }),
