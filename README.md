@@ -60,3 +60,12 @@ Prior GitHub Actions [run 41086311513](https://github.com/EMON-721/FixBari/actio
 - [Deployment handoff](docs/GITHUB_HANDOFF.md)
 
 **FixBari — Local service, made simpler.**
+
+<!-- DEPLOYMENT LINKS: maintained for GitHub repository navigation -->
+## Website & repository links
+
+- **Source repository:** https://github.com/EMON-721/FixBari
+- **Published website URL:** https://fix-bari.vercel.app
+- **Availability:** Deployment URL recorded; live HTTP reachability could not be independently verified on 1 November 2026.
+
+<!-- END DEPLOYMENT LINKS -->
