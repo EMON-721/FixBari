@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <AuthLayout title="Welcome Back" subtitle="Please enter your detail">
+    <AuthLayout title="Welcome Back" subtitle="Enter your email and password to access your account">
       <Suspense fallback={<p>Loading sign-in form...</p>}><LoginForm /></Suspense>
     </AuthLayout>
   );
