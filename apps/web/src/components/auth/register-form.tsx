@@ -17,7 +17,6 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -32,8 +31,6 @@ export function RegisterForm() {
       acceptTerms: false,
     },
   });
-
-  const selectedRole = watch("role");
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -113,49 +110,11 @@ export function RegisterForm() {
         />
       </FormField>
 
-      <FormField label="I want to" error={errors.role?.message}>
-        <div className="grid grid-cols-2 gap-4">
-          <label
-            className={`flex items-center justify-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-              selectedRole === "CUSTOMER"
-                ? "border-primary bg-primary/5 shadow-sm"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <input
-              type="radio"
-              value="CUSTOMER"
-              {...register("role")}
-              className="sr-only"
-            />
-            <div className="text-center">
-              <div className="text-3xl mb-2">🏠</div>
-              <div className="font-semibold text-gray-900">Find Services</div>
-              <div className="text-xs text-gray-500 mt-1">I need help</div>
-            </div>
-          </label>
-
-          <label
-            className={`flex items-center justify-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-              selectedRole === "TECHNICIAN"
-                ? "border-primary bg-primary/5 shadow-sm"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <input
-              type="radio"
-              value="TECHNICIAN"
-              {...register("role")}
-              className="sr-only"
-            />
-            <div className="text-center">
-              <div className="text-3xl mb-2">🔧</div>
-              <div className="font-semibold text-gray-900">Offer Services</div>
-              <div className="text-xs text-gray-500 mt-1">I'm a technician</div>
-            </div>
-          </label>
-        </div>
-      </FormField>
+      <input type="hidden" value="CUSTOMER" {...register("role")} />
+      <p className="rounded-xl bg-teal-50 p-3 text-sm text-teal-900">
+        This form creates a customer account for finding and booking services.
+        Service professionals use the separate technician onboarding portal.
+      </p>
 
       <div className="space-y-2">
         <label className="flex items-start gap-3 cursor-pointer">
