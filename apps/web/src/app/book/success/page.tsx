@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Plus, Mail, CreditCard, Banknote } from "lucide-react";
+import { ArrowLeft, ExternalLink, Plus, Mail, Banknote } from "lucide-react";
+import { redirect } from "next/navigation";
 import { Header, Footer } from "@/components/layout";
 import { AnimatedCheckIcon, BookingSuccessCard } from "@/components/booking";
-import type { BookingResult, BookingStatus, PaymentMethod } from "@/types/booking";
+import type { BookingResult, BookingStatus } from "@/types/booking";
 
 interface BookingSuccessPageProps {
   searchParams: Promise<{
@@ -23,6 +24,7 @@ export default async function BookingSuccessPage({
   searchParams,
 }: BookingSuccessPageProps) {
   const params = await searchParams;
+  if (!/^BK-[A-Z0-9]{6}$/.test(params.bookingId || "")) redirect("/dashboard/bookings");
 
   const booking: BookingResult = {
     bookingId: params.bookingId || "BK-UNKNOWN",
@@ -34,12 +36,6 @@ export default async function BookingSuccessPage({
     address: params.address || "Address not specified",
     status: (params.status as BookingStatus) || "pending",
   };
-
-  const paymentMethod = (params.paymentMethod as PaymentMethod) || "COD";
-  const paymentStatus = params.paymentStatus || "PENDING";
-  const isOnlinePayment = paymentMethod === "ONLINE";
-  const isPaymentCompleted = paymentStatus === "COMPLETED";
-  const isPaymentPending = isOnlinePayment && paymentStatus === "PENDING";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -65,11 +61,11 @@ export default async function BookingSuccessPage({
 
             {/* Title */}
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-              Booking Confirmed!
+              Booking Request Received
             </h1>
             <p className="text-gray-600 max-w-md mx-auto">
-              Your booking has been successfully placed. We&apos;ll contact you
-              shortly to confirm the details.
+              Your request was saved. It is pending admin review and technician assignment.
+              No advance payment has been collected.
             </p>
           </div>
 
@@ -81,7 +77,7 @@ export default async function BookingSuccessPage({
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link
-              href={`/bookings/${booking.bookingId}`}
+              href={`/dashboard/bookings/${booking.bookingId}`}
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
             >
               <ExternalLink className="w-4 h-4" />
@@ -96,75 +92,22 @@ export default async function BookingSuccessPage({
             </Link>
           </div>
 
-          {/* Payment Info Banner */}
-          <div className="max-w-md mx-auto mb-4">
-            <div className={`${
-              isPaymentCompleted
-                ? "bg-green-50 border-green-100"
-                : isPaymentPending
-                  ? "bg-orange-50 border-orange-100"
-                  : "bg-amber-50 border-amber-100"
-            } border rounded-xl p-4 flex items-start gap-3`}>
-              <div className={`w-8 h-8 rounded-full ${
-                isPaymentCompleted
-                  ? "bg-green-100"
-                  : isPaymentPending
-                    ? "bg-orange-100"
-                    : "bg-amber-100"
-              } flex items-center justify-center flex-shrink-0`}>
-                {isPaymentCompleted ? (
-                  <CreditCard className="w-4 h-4 text-green-600" />
-                ) : isPaymentPending ? (
-                  <CreditCard className="w-4 h-4 text-orange-600" />
-                ) : (
-                  <Banknote className="w-4 h-4 text-amber-600" />
-                )}
-              </div>
+          {/* COD policy and account history */}
+          <div className="mx-auto max-w-md space-y-4">
+            <div className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 p-4">
+              <Banknote className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-700" />
               <div>
-                <p className={`${
-                  isPaymentCompleted
-                    ? "text-green-900"
-                    : isPaymentPending
-                      ? "text-orange-900"
-                      : "text-amber-900"
-                } font-medium text-sm`}>
-                  {isPaymentCompleted
-                    ? "Payment completed"
-                    : isPaymentPending
-                      ? "Payment pending"
-                      : "Cash on Delivery"}
-                </p>
-                <p className={`${
-                  isPaymentCompleted
-                    ? "text-green-700"
-                    : isPaymentPending
-                      ? "text-orange-700"
-                      : "text-amber-700"
-                } text-sm`}>
-                  {isPaymentCompleted
-                    ? "Your payment has been successfully processed."
-                    : isPaymentPending
-                      ? "Please complete your payment to confirm the booking."
-                      : "Please pay the service provider when the work is completed."}
+                <p className="text-sm font-semibold text-amber-900">Cash on Delivery</p>
+                <p className="text-sm text-amber-800">
+                  Pay in cash after service completion. Booking payment is pending; no card or wallet payment is required now.
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Info Banner */}
-          <div className="max-w-md mx-auto">
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <Mail className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-blue-900 font-medium text-sm">
-                  Confirmation email sent
-                </p>
-                <p className="text-blue-700 text-sm">
-                  Check your inbox for booking details and updates.
-                </p>
-              </div>
+            <div className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4">
+              <Mail className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-700" />
+              <p className="text-sm text-blue-800">
+                Track your real booking status in My Bookings. Email delivery is not guaranteed until notifications are configured.
+              </p>
             </div>
           </div>
         </div>
