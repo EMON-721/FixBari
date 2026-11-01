@@ -184,10 +184,10 @@ export default async function ServiceDetailPage({
     const item = getSubService(categorySlug, serviceSlug);
     if (!item) notFound();
     const Icon = item.icon;
-    const isPriced = item.price > 0;
-    const bookingUrl = isPriced
-      ? `/book?service=${encodeURIComponent(item.id)}`
-      : `/dashboard/requests?kind=QUOTE&service=${encodeURIComponent(item.name)}`;
+    // This fallback runs only when the approved live service could not be loaded.
+    // A static illustrative price never means booking is available.
+    const isPriced = false;
+    const bookingUrl = `/dashboard/requests?kind=QUOTE&service=${encodeURIComponent(item.name)}`;
     return (
       <div className="min-h-screen bg-slate-50">
         <Header/>
