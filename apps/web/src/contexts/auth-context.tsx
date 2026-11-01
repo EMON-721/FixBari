@@ -177,7 +177,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
       });
 
-      router.push(afterCustomerSignIn());
+      const destination = afterCustomerSignIn();
+      router.push(destination === "/dashboard" ? "/dashboard/profile?created=1" : destination);
     },
     [router]
   );
