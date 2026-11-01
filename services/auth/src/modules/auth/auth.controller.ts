@@ -28,11 +28,13 @@ export class AuthController {
   ) {}
 
   @Post("register")
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
   @Post("login")
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
@@ -79,6 +81,7 @@ export class AuthController {
     }
     return {
       id: user.id,
+      customerNumber: user.customerNumber,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
