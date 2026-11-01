@@ -16,7 +16,7 @@ const ALLOWED_ROLE = "CUSTOMER";
 function afterCustomerSignIn(): string {
   // Only permit local paths; never allow a redirect to an external site.
   const requested = new URLSearchParams(window.location.search).get("redirect");
-  if (requested && requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\\\")) {
+  if (requested && requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\")) {
     return requested;
   }
   return "/dashboard";
