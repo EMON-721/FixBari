@@ -69,7 +69,7 @@ async function BookingContent({ searchParams }: BookPageProps) {
     if (catalogService) return <div className="mx-auto max-w-3xl rounded-2xl border bg-white p-8">
       <h1 className="text-2xl font-bold">{catalogService.name}</h1>
       <p className="mt-4">This proposed service requires an approved quotation before booking.</p>
-      <Link className="mt-5 inline-block text-teal-800 underline" href="/services">Browse services</Link>
+      <Link className="mt-5 inline-block rounded-xl bg-teal-800 px-5 py-3 font-semibold text-white" href={`/dashboard/requests?kind=QUOTE&service=${encodeURIComponent(catalogService.name)}`}>Request a quotation</Link>
     </div>;
     return (
       <div className="max-w-md mx-auto">
