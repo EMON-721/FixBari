@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <AuthLayout title="Create Account" subtitle="Join FixBari to get started">
+    <AuthLayout title="Create Account" subtitle="Sign up with your details — no Google account needed">
       <RegisterForm />
     </AuthLayout>
   );
