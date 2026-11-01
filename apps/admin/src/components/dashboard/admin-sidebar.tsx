@@ -33,7 +33,6 @@ const mainNavItems = [
     label: "Bookings",
     href: "/bookings",
     icon: CalendarDays,
-    badge: 12,
   },
   {
     label: "Users",
@@ -97,7 +96,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -219,12 +218,12 @@ export function AdminSidebar() {
       <div className={`p-3 border-t border-gray-200 ${isCollapsed ? "px-2" : ""}`}>
         <div className={`flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 transition-colors ${isCollapsed ? "justify-center" : ""}`}>
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-semibold text-sm">AD</span>
+            <span className="text-white font-semibold text-sm">{user?.firstName?.[0] || "A"}{user?.lastName?.[0] || "D"}</span>
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-900 text-sm truncate">Admin User</p>
-              <p className="text-xs text-gray-500 truncate">admin@example.invalid</p>
+              <p className="font-semibold text-gray-900 text-sm truncate">{user ? `${user.firstName} ${user.lastName}` : "Admin"}</p>
+              <p className="text-xs text-gray-500 truncate">{user?.email || "Admin account"}</p>
             </div>
           )}
         </div>
