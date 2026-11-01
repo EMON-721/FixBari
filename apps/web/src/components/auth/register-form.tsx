@@ -41,7 +41,7 @@ export function RegisterForm() {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
-        role: data.role,
+        role: "CUSTOMER",
       });
     } catch (err) {
       setError(
@@ -85,10 +85,12 @@ export function RegisterForm() {
         />
       </FormField>
 
-      <FormField label="Phone (Optional)" error={errors.phone?.message}>
+      <FormField label="Mobile Number (Required)" error={errors.phone?.message}>
         <Input
           type="tel"
-          placeholder="+880 1XXX-XXXXXX"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder="01XXXXXXXXX"
           {...register("phone")}
           className="h-12 bg-gray-50 border-gray-200"
         />
@@ -110,10 +112,9 @@ export function RegisterForm() {
         />
       </FormField>
 
-      <input type="hidden" value="CUSTOMER" {...register("role")} />
+      <input type="hidden" {...register("role")} />
       <p className="rounded-xl bg-teal-50 p-3 text-sm text-teal-900">
-        This form creates a customer account for finding and booking services.
-        Service professionals use the separate technician onboarding portal.
+        No Google account required. Enter your details to create a FixBari customer account; your Customer ID will be issued automatically.
       </p>
 
       <div className="space-y-2">
@@ -148,7 +149,7 @@ export function RegisterForm() {
       </Button>
 
       <p className="text-center text-sm text-gray-600">
-        Already have an account?{" "}
+        Already have an account?{" "
         <Link href="/login" className="text-primary font-semibold hover:underline">
           Sign in
         </Link>
