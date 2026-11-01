@@ -37,7 +37,9 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.usersService.findByEmail(registerDto.email);
+    const normalizedEmail = registerDto.email.trim().toLowerCase();
+    const normalizedPhone = registerDto.phone.startsWith("+880") ? registerDto.phone : `+88${registerDto.phone}`;
+    const existingUser = await this.usersService.findByEmail(normalizedEmail);
     if (existingUser) {
       throw new ConflictException("Email already registered");
     }
@@ -45,11 +47,11 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(registerDto.password, 10);
 
     const user = await this.usersService.create({
-      email: registerDto.email,
+      email: normalizedEmail,
       passwordHash,
-      firstName: registerDto.firstName,
-      lastName: registerDto.lastName,
-      phone: registerDto.phone,
+      firstName: registerDto.firstName.trim(),
+      lastName: registerDto.lastName.trim(),
+      phone: normalizedPhone,
       role: registerDto.role === "TECHNICIAN" ? UserRole.TECHNICIAN : UserRole.CUSTOMER,
     });
 
@@ -58,6 +60,7 @@ export class AuthService {
     return {
       user: {
         id: user.id,
+        customerNumber: user.customerNumber,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -68,7 +71,7 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+    const user = await this.validateUser(loginDto.email.trim().toLowerCase(), loginDto.password);
 
     if (!user) {
       throw new UnauthorizedException("Invalid credentials");
@@ -95,7 +98,7 @@ export class AuthService {
     const tokens = await this.generateTokens(user, mfaVerified);
 
     return {
-      user: {id:user.id,email:user.email,firstName:user.firstName,lastName:user.lastName,role:user.role},
+      user: {id:user.id,customerNumber:user.customerNumber,email:user.email,firstName:user.firstName,lastName:user.lastName,role:user.role},
       ...tokens,
     };
   }
