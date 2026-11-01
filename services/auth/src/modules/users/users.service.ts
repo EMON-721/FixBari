@@ -29,7 +29,7 @@ export class UsersService {
 
   async listPublicDirectory() {
     return this.prisma.authUser.findMany({
-      select:{id:true,email:true,firstName:true,lastName:true,phone:true,role:true,isActive:true,createdAt:true,emailVerified:true},
+      select:{id:true,customerNumber:true,email:true,firstName:true,lastName:true,phone:true,role:true,isActive:true,createdAt:true,emailVerified:true},
       orderBy:{createdAt:"desc"},take:200,
     });
   }
@@ -46,7 +46,7 @@ export class UsersService {
       ...(data.division !== undefined && {division:data.division}),
       ...(data.postalCode !== undefined && {postalCode:data.postalCode}),
     };
-    return this.prisma.authUser.update({where:{id},data:update,select:{id:true,email:true,firstName:true,lastName:true,phone:true,address:true,area:true,city:true,division:true,postalCode:true,emailVerified:true,createdAt:true}});
+    return this.prisma.authUser.update({where:{id},data:update,select:{id:true,customerNumber:true,email:true,firstName:true,lastName:true,phone:true,address:true,area:true,city:true,division:true,postalCode:true,emailVerified:true,createdAt:true}});
   }
 
   async setActiveStatus(id:string,isActive:boolean) {
