@@ -1,5 +1,5 @@
 import { prisma } from "../config/database";
-import { Prisma, OrderStatus, PaymentMethod, PaymentStatus } from "@local-services/database";
+import { Prisma, OrderStatus } from "@local-services/database";
 import { AppError } from "../middleware/error-handler";
 import { generateBookingId, isValidBookingId } from "../utils/booking-id";
 import {
@@ -16,41 +16,8 @@ import {
   BookingDetailsDto,
   BookingStatus,
   AddReviewDto,
-  PaymentStatusType,
 } from "../dto/create-booking.dto";
 import { PaginationOptions, PaginatedResult } from "../dto/order-query.dto";
-
-interface PaymentInitiationData {
-  orderId: string;
-  bookingId: string;
-  userId: string;
-  amount: number;
-  currency: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  customerAddress: {
-    area: string;
-    city: string;
-    division: string;
-    postalCode: string;
-  };
-  serviceDescription: string;
-}
-
-interface PaymentInitiationResponse {
-  success: boolean;
-  data?: {
-    paymentId: string;
-    sessionId: string;
-    gatewayUrl: string;
-    tranId: string;
-    expiresAt: string;
-  };
-  error?: {
-    message: string;
-  };
-}
 
 function mapOrderStatusToBookingStatus(status: OrderStatus): BookingStatus {
   const statusMap: Record<OrderStatus, BookingStatus> = {
@@ -85,7 +52,7 @@ export class BookingService {
   async createBooking(
     userId: string,
     dto: CreateBookingDto,
-    userInfo?: { name: string; email: string; phone: string }
+    _userInfo?: { name: string; email: string; phone: string }
   ): Promise<BookingResponseDto> {
     // FixBari currently accepts only Cash on Delivery. Keep payment gateway code
     // for a future explicitly reviewed release, but block ONLINE at the API boundary.
@@ -129,12 +96,8 @@ export class BookingService {
       throw new AppError(400, "Invalid date format", "VALIDATION_ERROR");
     }
 
-    if (dto.paymentMethod === "ONLINE" && (!userInfo?.name || !userInfo.email || !userInfo.phone)) {
-      throw new AppError(400, "Contact details are required for online payment", "VALIDATION_ERROR");
-    }
-
-    // Determine payment method
-    const paymentMethod: PaymentMethod = dto.paymentMethod === "ONLINE" ? "ONLINE" : "COD";
+    // COD-only checkout: no gateway initiation or advance payment.
+    const paymentMethod = "COD" as const;
 
     // Create order with booking data
     const order = await prisma.order.create({
@@ -186,50 +149,7 @@ export class BookingService {
       },
     });
 
-    let gatewayUrl: string | undefined;
-    let paymentStatus: PaymentStatusType = "PENDING";
-
-    // If online payment, initiate payment session
-    if (paymentMethod === "ONLINE" && userInfo) {
-      try {
-        const paymentResponse = await this.initiatePayment({
-          orderId: order.id,
-          bookingId: order.bookingId,
-          userId,
-          amount: Number(order.totalAmount),
-          currency: "BDT",
-          customerName: userInfo.name,
-          customerEmail: userInfo.email,
-          customerPhone: userInfo.phone,
-          customerAddress: {
-            area: dto.area,
-            city: dto.city,
-            division: dto.division,
-            postalCode: dto.postalCode,
-          },
-          serviceDescription: `${service.name} - ${getTierName(dto.tier)} Package`,
-        });
-
-        if (paymentResponse.success && paymentResponse.data) {
-          gatewayUrl = paymentResponse.data.gatewayUrl;
-          paymentStatus = "INITIATED";
-
-          // Update order with payment session info
-          await prisma.order.update({
-            where: { id: order.id },
-            data: {
-              paymentId: paymentResponse.data.paymentId,
-              paymentSessionId: paymentResponse.data.sessionId,
-              paymentStatus: "INITIATED",
-            },
-          });
-        }
-      } catch (error) {
-        console.error("Failed to initiate payment:", error);
-        // Still return success but without gateway URL
-        // User can retry payment later
-      }
-    }
+    const paymentStatus = "PENDING" as const;
 
     return {
       bookingId: order.bookingId,
@@ -247,33 +167,7 @@ export class BookingService {
       status: "pending",
       paymentMethod: dto.paymentMethod,
       paymentStatus,
-      gatewayUrl,
     };
-  }
-
-  private async initiatePayment(data: PaymentInitiationData): Promise<PaymentInitiationResponse> {
-    const paymentServiceUrl = process.env.PAYMENT_SERVICE_URL;
-    if (!paymentServiceUrl || !process.env.PAYMENT_INTERNAL_TOKEN) throw new Error("Payment service is not configured");
-
-    const response = await fetch(`${paymentServiceUrl}/sslcommerz/initiate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Internal-Service-Token": process.env.PAYMENT_INTERNAL_TOKEN || "" },
-      body: JSON.stringify({
-        order_id: data.orderId,
-        booking_id: data.bookingId,
-        user_id: data.userId,
-        amount: data.amount,
-        currency: data.currency,
-        customer_name: data.customerName,
-        customer_email: data.customerEmail,
-        customer_phone: data.customerPhone,
-        customer_address: data.customerAddress,
-        service_description: data.serviceDescription,
-      }),
-    });
-
-    if (!response.ok) throw new Error("Payment gateway session initialization failed");
-    return response.json() as Promise<PaymentInitiationResponse>;
   }
 
   async getUserBookings(
