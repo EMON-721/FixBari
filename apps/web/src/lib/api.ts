@@ -95,7 +95,7 @@ export const authApi = {
     password: string;
     firstName: string;
     lastName: string;
-    phone?: string;
+    phone: string;
     role?: string;
   }) =>
     baseFetch("/auth/register", {
