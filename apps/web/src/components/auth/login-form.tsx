@@ -5,6 +5,7 @@ import Script from "next/script";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button, Input } from "@local-services/ui";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { useAuth } from "@/contexts/auth-context";
@@ -14,6 +15,7 @@ import { FormField } from "@/components/ui/form-field";
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const { login, googleLogin } = useAuth();
+  const redirect = useSearchParams().get("redirect");
   const googleButton = useRef<HTMLDivElement>(null);
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const initializeGoogle = () => {
@@ -126,7 +128,7 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-gray-600 mt-4">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-primary font-semibold hover:underline">
+        <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register"} className="text-primary font-semibold hover:underline">
           Sign Up Now
         </Link>
       </p>
