@@ -127,19 +127,7 @@ export function AdminSidebar() {
         {!isCollapsed && (
           <>
             <span className="font-medium flex-1">{item.label}</span>
-            {"badge" in item && item.badge && (
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                active ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
-              }`}>
-                {item.badge}
-              </span>
-            )}
           </>
-        )}
-        {isCollapsed && "badge" in item && item.badge && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-            {item.badge}
-          </span>
         )}
       </Link>
     );
