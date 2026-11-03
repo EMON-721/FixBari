@@ -54,8 +54,10 @@ export function PublicOnlyRoute({
     }
   }, [isLoading, isAuthenticated, user, router, redirectTo]);
 
+  // The login form is public: never block it behind an asynchronous session
+  // revalidation, which can take time on a sleeping backend or stale token.
   if (isLoading) {
-    return <LoadingScreen />;
+    return <>{children}</>;
   }
 
   if (isAuthenticated && user?.role === ALLOWED_ROLE) {
