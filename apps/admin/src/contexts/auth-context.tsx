@@ -106,7 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initAuth();
+    // A browser storage exception or unexpected API response must never
+    // strand the public Admin Login behind the initial loading state.
+    void initAuth().catch(() => {
+      try { storage.clearAuth(); } catch { /* storage may be disabled */ }
+      setState({ user: null, isAuthenticated: false, isLoading: false });
+    });
   }, [refreshSession]);
 
   const login = useCallback(
