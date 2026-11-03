@@ -146,6 +146,33 @@ export class AuthController {
     return {success:true, data:await this.usersService.setActiveStatus(id,body.isActive)};
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get("technician/application")
+  async myTechnicianApplication(@Request() req: { user: { id: string } }) {
+    return { success: true, data: await this.usersService.getTechnicianApplication(req.user.id) };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("admin/technician-applications")
+  async technicianApplications(@Request() req: { user: { role: string } }) {
+    if (req.user.role !== "ADMIN") throw new ForbiddenException();
+    return { success: true, data: await this.usersService.listTechnicianApplications() };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("admin/technician-applications/:id")
+  async reviewTechnicianApplication(
+    @Request() req: { user: { id: string; role: string } },
+    @Param("id") id: string,
+    @Body() body: { decision: string }
+  ) {
+    if (req.user.role !== "ADMIN") throw new ForbiddenException();
+    if (!["APPROVED", "REJECTED"].includes(body?.decision)) {
+      throw new ForbiddenException("Invalid technician decision");
+    }
+    return { success: true, data: await this.usersService.reviewTechnicianApplication(id, body.decision as "APPROVED" | "REJECTED", req.user.id) };
+  }
+
   @Get("validate-reset-token/:token")
   async validateResetToken(@Param("token") token: string) {
     return this.authService.validateResetToken(token);
