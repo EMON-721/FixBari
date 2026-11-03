@@ -38,6 +38,10 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const normalizedEmail = registerDto.email.trim().toLowerCase();
+    const reservedOwnerEmail = (process.env.OWNER_ADMIN_EMAIL || "").trim().toLowerCase();
+    if (reservedOwnerEmail && normalizedEmail === reservedOwnerEmail) {
+      throw new ConflictException("This email is reserved for administrative onboarding");
+    }
     const normalizedPhone = registerDto.phone.startsWith("+880") ? registerDto.phone : `+88${registerDto.phone}`;
     const existingUser = await this.usersService.findByEmail(normalizedEmail);
     if (existingUser) {
