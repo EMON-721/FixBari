@@ -51,6 +51,12 @@ export function RegisterForm() {
   });
 
   const selectedRole = watch("role");
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("role") === "technician") {
+      setValue("role", "TECHNICIAN");
+    }
+  }, [setValue]);
+
   const onSubmit = async (data: RegisterFormData) => {
     if (authAvailability !== "ready") {
       setError("Registration is unavailable because the account service is not connected. Your details were not submitted.");
