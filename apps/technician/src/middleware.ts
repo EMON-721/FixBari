@@ -3,66 +3,39 @@ import type { NextRequest } from "next/server";
 
 const ACCESS_TOKEN_KEY = "fixbari_tech_access_token";
 const ALLOWED_ROLE = "TECHNICIAN";
-
 const protectedPaths = ["/dashboard"];
-const publicOnlyPaths = ["/login", "/register", "/forgot-password", "/reset-password"];
-
-function decodeJwtPayload(
-  token: string
-): { sub: string; email: string; role: string } | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const base64Payload = parts[1];
-    if (!base64Payload) return null;
-    const payload = JSON.parse(atob(base64Payload));
-    return payload;
-  } catch {
-    return null;
-  }
+function isProtected(pathname: string) {
+  return protectedPaths.some(path => path === "/" ? pathname === "/" : (pathname === path || pathname.startsWith(path + "/")));
 }
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  if (!isProtected(pathname)) return NextResponse.next();
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
   const token = request.cookies.get(ACCESS_TOKEN_KEY)?.value;
+  if (!token) return NextResponse.redirect(new URL("/login", request.url));
 
-  const isProtectedPath = protectedPaths.some((path) =>
-    pathname.startsWith(path)
-  );
-  const isPublicOnlyPath = publicOnlyPaths.some((path) =>
-    pathname.startsWith(path)
-  );
-
-  const payload = token ? decodeJwtPayload(token) : null;
-  const isAuthenticated = !!payload;
-  const userRole = payload?.role;
-
-  if (isProtectedPath) {
-    if (!isAuthenticated) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    if (userRole !== ALLOWED_ROLE) {
-      const accessDeniedUrl = new URL("/access-denied", request.url);
-      return NextResponse.redirect(accessDeniedUrl);
-    }
+  const origin = (process.env.AUTH_SERVICE_ORIGIN || "").trim();
+  if (!/^https:\/\/[^/]+$/.test(origin)) {
+    // Never authorize access using an unverified decoded JWT.
+    return NextResponse.redirect(new URL("/login", request.url));
   }
-
-  if (isPublicOnlyPath && isAuthenticated && userRole === ALLOWED_ROLE) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  try {
+    const response = await fetch(origin + "/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) return NextResponse.redirect(new URL("/login", request.url));
+    const user = await response.json();
+    if (user.role !== ALLOWED_ROLE) {
+      return NextResponse.redirect(new URL("/access-denied", request.url));
+    }
+    return NextResponse.next();
+  } catch {
+    // Fail closed while authentication infrastructure is unavailable.
+    return NextResponse.redirect(new URL("/login", request.url));
   }
-
-  return NextResponse.next();
 }
-
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password/:path*",
-  ],
+  matcher: ["/dashboard/:path*"],
 };
