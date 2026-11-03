@@ -160,9 +160,26 @@ export function RegisterForm() {
         />
       </FormField>
 
+      {selectedRole === "TECHNICIAN" && (
+        <div className="space-y-4 rounded-xl border border-teal-200 bg-teal-50/40 p-4">
+          <p className="font-semibold">Technician Application — Admin approval required</p>
+          <FormField label="Service Areas (comma separated)" error={errors.serviceAreas?.message}>
+            <Input {...register("serviceAreas")} placeholder="Dhaka, Uttara, Mirpur" className="h-12 bg-white" />
+          </FormField>
+          <FormField label="Skills (comma separated)" error={errors.specializations?.message}>
+            <Input {...register("specializations")} placeholder="Electrician, Plumbing" className="h-12 bg-white" />
+          </FormField>
+          <FormField label="Experience" error={errors.experience?.message}>
+            <textarea {...register("experience")} rows={3} maxLength={1000}
+              className="w-full rounded-xl border border-gray-200 bg-white p-3"
+              placeholder="Describe relevant work experience and qualifications" />
+          </FormField>
+          <p className="text-xs text-gray-600">An administrator must approve your application before you get technician privileges.</p>
+        </div>
+      )}
       <input type="hidden" {...register("role")} />
       <p className="rounded-xl bg-teal-50 p-3 text-sm text-teal-900">
-        No Google account required. Enter your details to create a FixBari customer account; your Customer ID will be issued automatically.
+        No Google account needed. Technician applicants need administrator approval; Admin accounts are invitation-only.
       </p>
 
       <div className="space-y-2">
@@ -193,7 +210,7 @@ export function RegisterForm() {
         className="w-full h-12 text-base font-semibold rounded-full"
         disabled={isSubmitting || authAvailability !== "ready"}
       >
-        {isSubmitting ? "Creating account..." : authAvailability === "checking" ? "Checking service..." : "Create account"}
+        {isSubmitting ? "Creating account..." : authAvailability === "checking" ? "Checking service..." : selectedRole === "TECHNICIAN" ? "Submit technician application" : "Create customer account"}
       </Button>
 
       <p className="text-center text-sm text-gray-600">
