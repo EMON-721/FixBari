@@ -94,21 +94,31 @@ export function RegisterForm() {
         <p role="status" className="text-sm text-gray-500">Checking account service availability...</p>
       )}
       {error && (
-        <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm border border-destructive/20">
-          {error}
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {error.toLowerCase().includes("reserved for administrative onboarding") ? (
+            <div className="space-y-2">
+              <p className="font-semibold">This email is reserved for the FixBari Owner Admin account.</p>
+              <p>Admin accounts cannot be created from Customer or Technician signup. Select the separate secure Admin setup instead.</p>
+              <Link href="/admin-access" className="inline-block font-semibold text-teal-800 underline underline-offset-2">
+                Go to Admin Access
+              </Link>
+            </div>
+          ) : (
+            error
+          )}
         </div>
       )}
 
       <fieldset className="space-y-3">
         <legend className="font-semibold">Choose your account type</legend>
         <div className="grid gap-3 sm:grid-cols-3">
-          <button type="button" aria-pressed={selectedRole === "CUSTOMER"} onClick={() => setValue("role", "CUSTOMER")} className={`rounded-xl border-2 p-3 text-left text-sm ${selectedRole === "CUSTOMER" ? "border-teal-600 bg-teal-50" : "border-gray-200"}`}>
+          <button type="button" aria-pressed={selectedRole === "CUSTOMER"} onClick={() => { setValue("role", "CUSTOMER"); setError(null); }} className={`rounded-xl border-2 p-3 text-left text-sm ${selectedRole === "CUSTOMER" ? "border-teal-600 bg-teal-50" : "border-gray-200"}`}>
             <strong className="block">Customer</strong><span>Book services</span>
           </button>
-          <button type="button" aria-pressed={selectedRole === "TECHNICIAN"} onClick={() => setValue("role", "TECHNICIAN")} className={`rounded-xl border-2 p-3 text-left text-sm ${selectedRole === "TECHNICIAN" ? "border-teal-600 bg-teal-50" : "border-gray-200"}`}>
+          <button type="button" aria-pressed={selectedRole === "TECHNICIAN"} onClick={() => { setValue("role", "TECHNICIAN"); setError(null); }} className={`rounded-xl border-2 p-3 text-left text-sm ${selectedRole === "TECHNICIAN" ? "border-teal-600 bg-teal-50" : "border-gray-200"}`}>
             <strong className="block">Technician</strong><span>Apply for approval</span>
           </button>
-          <Link href="/admin-access" className="rounded-xl border-2 border-gray-200 p-3 text-left text-sm hover:border-teal-600"><strong className="block">Admin</strong><span>Invitation only</span></Link>
+          <Link href="/admin-access" className="rounded-xl border-2 border-gray-200 p-3 text-left text-sm hover:border-teal-600"><strong className="block">Admin</strong><span>Secure owner setup</span></Link>
         </div>
       </fieldset>
 
