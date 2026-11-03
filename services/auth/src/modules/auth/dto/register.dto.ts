@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, IsOptional, IsIn, Matches, MaxLength } from "class-validator";
+import { IsEmail, IsString, MinLength, IsOptional, IsIn, Matches, MaxLength, IsArray, ArrayMaxSize } from "class-validator";
 
 export class RegisterDto {
   @IsEmail()
@@ -27,4 +27,21 @@ export class RegisterDto {
   @IsOptional()
   @IsIn(["CUSTOMER", "TECHNICIAN"])
   role?: "CUSTOMER" | "TECHNICIAN";
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  serviceAreas?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(15)
+  @IsString({ each: true })
+  specializations?: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  experience?: string;
 }
