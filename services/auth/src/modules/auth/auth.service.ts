@@ -114,7 +114,7 @@ export class AuthService {
     try {
       await this.prisma.$transaction(async tx => {
         // An exclusive advisory lock serializes concurrent bootstrap attempts.
-        await tx.$queryRaw`SELECT pg_advisory_xact_lock(819244820)`;
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(819244820)::text AS locked`;
         const admins = await tx.authUser.count({ where: { role: UserRole.ADMIN } });
         if (admins !== 0) throw new ConflictException("Owner setup already completed");
         const duplicate = await tx.authUser.findUnique({ where: { email: suppliedEmail } });
