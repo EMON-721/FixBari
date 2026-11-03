@@ -13,6 +13,7 @@ import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./auth.service";
 import { UsersService } from "../users/users.service";
 import { RegisterDto } from "./dto/register.dto";
+import { OwnerSetupDto } from "./dto/owner-setup.dto";
 import { LoginDto } from "./dto/login.dto";
 import { GoogleLoginDto } from "./dto/google-login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
@@ -31,6 +32,12 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Post("owner/initialize")
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
+  async initializeOwner(@Body() dto: OwnerSetupDto) {
+    return this.authService.initializeOwner(dto);
   }
 
   @Post("login")
