@@ -50,6 +50,23 @@ export class UsersService {
   }
 
   async setActiveStatus(id:string,isActive:boolean) {
+    if (!isActive) {
+      const target = await this.prisma.authUser.findUnique({
+        where: { id }, select: { email: true, role: true },
+      });
+      const ownerEmail = (process.env.OWNER_ADMIN_EMAIL || "").trim().toLowerCase();
+      if (target?.email.toLowerCase() === ownerEmail && ownerEmail) {
+        throw new ConflictException("Owner account cannot be suspended");
+      }
+      if (target?.role === UserRole.ADMIN) {
+        const remainingAdmins = await this.prisma.authUser.count({
+          where: { role: UserRole.ADMIN, isActive: true },
+        });
+        if (remainingAdmins <= 1) {
+          throw new ConflictException("Cannot disable the last active administrator");
+        }
+      }
+    }
     const updated = await this.prisma.authUser.updateMany({
       where:{id},data:{isActive}
     });
