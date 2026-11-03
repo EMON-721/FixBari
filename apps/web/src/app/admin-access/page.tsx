@@ -13,6 +13,7 @@ export default function AdminAccessPage() {
       <h2 className="font-semibold">Owner and invited administrators</h2>
       <p className="mt-2 text-sm text-gray-700">Use the separate Admin Portal after your account has been securely provisioned and approved. Login requires an Admin password and, when enabled, an authenticator code.</p>
       <p className="mt-3 text-sm text-gray-700">The Admin Portal is deployed independently of the Customer Website. Do not enter an administrator password into customer registration.</p>
+      <p className="mt-3 text-sm text-gray-700">Initial owner provisioning requires the one-time backend OWNER_SETUP_SECRET and OWNER_ADMIN_EMAIL settings. The owner setup endpoint is disabled until those private settings are configured.</p>
     </div>
     <Link href="/login" className="mt-6 inline-block text-teal-800 underline">Customer login</Link>
   </main>;
