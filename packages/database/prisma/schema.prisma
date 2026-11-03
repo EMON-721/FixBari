@@ -34,10 +34,28 @@ model AuthUser {
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   adminMfa            AdminMfa?
+  technicianApplication TechnicianApplication?
   sessions            AuthSession[]
   passwordResetTokens PasswordResetToken[]
 
   @@map("auth_users")
+}
+
+model TechnicianApplication {
+  id String @id @default(uuid())
+  userId String @unique @map("user_id")
+  technicianNumber Int @unique @default(autoincrement()) @map("technician_number")
+  status String @default("PENDING")
+  serviceAreas String[] @default([]) @map("service_areas")
+  specializations String[] @default([])
+  experience String? @db.VarChar(1000)
+  reviewedBy String? @map("reviewed_by")
+  reviewedAt DateTime? @map("reviewed_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([status, createdAt])
+  @@map("technician_applications")
 }
 
 model PasswordResetToken {
