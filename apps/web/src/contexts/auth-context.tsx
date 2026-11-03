@@ -164,8 +164,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (data: RegisterData) => {
       const response = (await authApi.register({
         ...data,
-        role: "CUSTOMER",
+        role: data.role === "TECHNICIAN" ? "TECHNICIAN" : "CUSTOMER",
       })) as LoginResponse;
+      if (response.user.role !== "CUSTOMER") throw new Error("Unexpected registration role");
 
       storage.setAccessToken(response.accessToken);
       storage.setRefreshToken(response.refreshToken);
@@ -178,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       const destination = afterCustomerSignIn();
-      router.push(destination === "/dashboard" ? "/dashboard/profile?created=1" : destination);
+      router.push(data.role === "TECHNICIAN" ? "/technician-application" : destination === "/dashboard" ? "/dashboard/profile?created=1" : destination);
     },
     [router]
   );
