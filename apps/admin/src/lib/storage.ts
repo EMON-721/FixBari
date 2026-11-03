@@ -37,8 +37,14 @@ export const storage = {
 
   getUser: () => {
     if (typeof window === "undefined") return null;
-    const user = localStorage.getItem(USER_KEY);
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = localStorage.getItem(USER_KEY);
+      return user ? JSON.parse(user) : null;
+    } catch {
+      // Corrupt cached sessions must never leave login behind a spinner.
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
   },
 
   setUser: (user: unknown) => {
