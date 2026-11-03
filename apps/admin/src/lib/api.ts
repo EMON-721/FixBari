@@ -48,10 +48,24 @@ async function baseFetch<T>(
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${apiUrl}${endpoint}`, {
-    ...fetchOptions,
-    headers,
-  });
+  // Do not let stale sessions hang the login page indefinitely if the
+  // authentication service is sleeping, unreachable, or misconfigured.
+  const timeout = AbortSignal.timeout(endpoint.startsWith("/auth/") ? 15000 : 20000);
+  const combined = fetchOptions.signal ? AbortSignal.any([fetchOptions.signal, timeout]) : timeout;
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}${endpoint}`, {
+      ...fetchOptions,
+      signal: combined,
+      headers,
+      cache: "no-store",
+    });
+  } catch (error) {
+    if (timeout.aborted) {
+      throw new Error("The authentication server took too long to respond. Please retry.");
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
