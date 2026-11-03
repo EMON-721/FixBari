@@ -6,11 +6,37 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@local-services/ui"],
   },
-  // Rewrites are handled by vercel.json in production
-  // Only use local rewrites in development
+  // The customer Auth API uses its own fail-closed Next.js route.
+  // Rewrite other service calls only when a real gateway has been configured.
   async rewrites() {
-    const gateway = process.env.API_GATEWAY_ORIGIN || "http://localhost";
-    return [{ source: "/api/:path*", destination: `${gateway}/api/:path*` }];
+    const origin = (process.env.API_GATEWAY_ORIGIN || "").trim();
+    if (!origin) return [];
+
+    let gateway: URL;
+    try {
+      gateway = new URL(origin);
+    } catch {
+      return [];
+    }
+    const isDevelopmentLoopback =
+      process.env.NODE_ENV !== "production" &&
+      gateway.protocol === "http:" &&
+      ["localhost", "127.0.0.1"].includes(gateway.hostname);
+
+    if (
+      (gateway.protocol !== "https:" && !isDevelopmentLoopback) ||
+      gateway.username ||
+      gateway.password ||
+      gateway.search ||
+      gateway.hash ||
+      gateway.pathname !== "/"
+    ) return [];
+
+    const services = ["services", "orders", "notifications", "payment"];
+    return services.map(service => ({
+      source: `/api/${service}/:path*`,
+      destination: `${gateway.origin}/api/${service}/:path*`,
+    }));
   },
 };
 
