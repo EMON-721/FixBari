@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -12,6 +12,22 @@ import { FormField } from "@/components/ui/form-field";
 
 export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
+  const [authAvailability, setAuthAvailability] = useState<"checking" | "ready" | "offline">("checking");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/auth/health", { cache: "no-store", signal: controller.signal })
+      .then(response => {
+        if (!controller.signal.aborted) {
+          setAuthAvailability(response.ok ? "ready" : "offline");
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setAuthAvailability("offline");
+      });
+    return () => controller.abort();
+  }, []);
+
   const { register: registerUser } = useAuth();
 
   const {
@@ -33,6 +49,10 @@ export function RegisterForm() {
   });
 
   const onSubmit = async (data: RegisterFormData) => {
+    if (authAvailability !== "ready") {
+      setError("Registration is unavailable because the account service is not connected. Your details were not submitted.");
+      return;
+    }
     try {
       setError(null);
       await registerUser({
@@ -52,6 +72,15 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {authAvailability === "offline" && (
+        <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          Account creation is temporarily unavailable because the authentication service is not connected.
+          No account has been created and no password has been saved. Please try again once the service is restored.
+        </div>
+      )}
+      {authAvailability === "checking" && (
+        <p role="status" className="text-sm text-gray-500">Checking account service availability...</p>
+      )}
       {error && (
         <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm border border-destructive/20">
           {error}
@@ -143,9 +172,9 @@ export function RegisterForm() {
       <Button
         type="submit"
         className="w-full h-12 text-base font-semibold rounded-full"
-        disabled={isSubmitting}
+        disabled={isSubmitting || authAvailability !== "ready"}
       >
-        {isSubmitting ? "Creating account..." : "Create account"}
+        {isSubmitting ? "Creating account..." : authAvailability === "checking" ? "Checking service..." : "Create account"}
       </Button>
 
       <p className="text-center text-sm text-gray-600">
