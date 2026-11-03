@@ -32,6 +32,9 @@ export interface RegisterData {
   lastName: string;
   phone: string;
   role?: "CUSTOMER" | "TECHNICIAN";
+  serviceAreas?: string[];
+  specializations?: string[];
+  experience?: string;
 }
 
 export interface AuthState {
