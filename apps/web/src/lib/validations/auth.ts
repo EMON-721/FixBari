@@ -19,10 +19,18 @@ export const registerSchema = z
       .regex(/[0-9]/, "Password must contain at least one number"),
     confirmPassword: z.string(),
     phone: z.string().regex(/^(?:\+8801|01)[3-9]\d{8}$/, "Enter a valid Bangladeshi mobile number"),
-    role: z.literal("CUSTOMER"),
+    role: z.enum(["CUSTOMER", "TECHNICIAN"]),
+    serviceAreas: z.string().optional(),
+    specializations: z.string().optional(),
+    experience: z.string().max(1000).optional(),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: "You must accept the terms and conditions",
     }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.role !== "TECHNICIAN") return;
+    if (!data.serviceAreas?.trim()) ctx.addIssue({ code: "custom", path: ["serviceAreas"], message: "Service area is required for technician applicants" });
+    if (!data.specializations?.trim()) ctx.addIssue({ code: "custom", path: ["specializations"], message: "At least one skill is required for technician applicants" });
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
