@@ -89,6 +89,56 @@ export class AuthService {
     };
   }
 
+  /**
+   * Single-use owner bootstrap. Requires a high-entropy secret configured only
+   * in the backend environment, a matching configured email, and no existing
+   * administrator. There is no email-based auto-promotion.
+   */
+  async initializeOwner(dto: {
+    email: string; firstName: string; lastName: string;
+    password: string; setupSecret: string;
+  }) {
+    const expectedEmail = (process.env.OWNER_ADMIN_EMAIL || "").trim().toLowerCase();
+    const expectedSecret = process.env.OWNER_SETUP_SECRET || "";
+    if (!expectedEmail || expectedSecret.length < 32) {
+      throw new UnauthorizedException("Owner setup is not enabled");
+    }
+    const suppliedEmail = dto.email.trim().toLowerCase();
+    // Fixed-length digest comparison avoids leaking the secret via timing.
+    const expectedHash = crypto.createHash("sha256").update(expectedSecret).digest();
+    const actualHash = crypto.createHash("sha256").update(dto.setupSecret).digest();
+    if (suppliedEmail !== expectedEmail || !crypto.timingSafeEqual(expectedHash, actualHash)) {
+      throw new UnauthorizedException("Owner setup authorization failed");
+    }
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    try {
+      await this.prisma.$transaction(async tx => {
+        // An exclusive advisory lock serializes concurrent bootstrap attempts.
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(819244820)`;
+        const admins = await tx.authUser.count({ where: { role: UserRole.ADMIN } });
+        if (admins !== 0) throw new ConflictException("Owner setup already completed");
+        const duplicate = await tx.authUser.findUnique({ where: { email: suppliedEmail } });
+        if (duplicate) throw new ConflictException("An account with this email already exists");
+        await tx.authUser.create({
+          data: {
+            email: suppliedEmail,
+            passwordHash,
+            firstName: dto.firstName.trim(),
+            lastName: dto.lastName.trim(),
+            role: UserRole.ADMIN,
+            // Email is not independently verified by the bootstrap mechanism.
+            emailVerified: false,
+          },
+        });
+      });
+    } catch (error) {
+      if (error instanceof ConflictException) throw error;
+      throw new ConflictException("Owner setup could not be completed");
+    }
+    // Do not issue a privileged session in a setup response; owner must log in.
+    return { success: true, message: "Owner account initialized. Use the separate Admin Login." };
+  }
+
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email.trim().toLowerCase(), loginDto.password);
 
