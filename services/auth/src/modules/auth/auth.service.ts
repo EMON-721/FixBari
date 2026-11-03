@@ -46,13 +46,31 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(registerDto.password, 10);
 
-    const user = await this.usersService.create({
-      email: normalizedEmail,
-      passwordHash,
-      firstName: registerDto.firstName.trim(),
-      lastName: registerDto.lastName.trim(),
-      phone: normalizedPhone,
-      role: registerDto.role === "TECHNICIAN" ? UserRole.TECHNICIAN : UserRole.CUSTOMER,
+    const technicianApplication = registerDto.role === "TECHNICIAN";
+    // Public signup cannot grant a privileged role. Technician applicants
+    // remain customers until an authenticated admin explicitly approves them.
+    const user = await this.prisma.$transaction(async tx => {
+      const created = await tx.authUser.create({
+        data: {
+          email: normalizedEmail,
+          passwordHash,
+          firstName: registerDto.firstName.trim(),
+          lastName: registerDto.lastName.trim(),
+          phone: normalizedPhone,
+          role: UserRole.CUSTOMER,
+        },
+      });
+      if (technicianApplication) {
+        await tx.technicianApplication.create({
+          data: {
+            userId: created.id,
+            serviceAreas: (registerDto.serviceAreas ?? []).map(v => v.trim()).filter(Boolean),
+            specializations: (registerDto.specializations ?? []).map(v => v.trim()).filter(Boolean),
+            experience: registerDto.experience?.trim() || null,
+          },
+        });
+      }
+      return created;
     });
 
     const tokens = await this.generateTokens(user);
@@ -65,6 +83,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        technicianApplicationStatus: technicianApplication ? "PENDING" : undefined,
       },
       ...tokens,
     };
