@@ -93,6 +93,19 @@ export function RegisterForm() {
         </div>
       )}
 
+      <fieldset className="space-y-3">
+        <legend className="font-semibold">Choose your account type</legend>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <button type="button" aria-pressed={selectedRole === "CUSTOMER"} onClick={() => setValue("role", "CUSTOMER")} className={`rounded-xl border-2 p-3 text-left text-sm ${selectedRole === "CUSTOMER" ? "border-teal-600 bg-teal-50" : "border-gray-200"}`}>
+            <strong className="block">Customer</strong><span>Book services</span>
+          </button>
+          <button type="button" aria-pressed={selectedRole === "TECHNICIAN"} onClick={() => setValue("role", "TECHNICIAN")} className={`rounded-xl border-2 p-3 text-left text-sm ${selectedRole === "TECHNICIAN" ? "border-teal-600 bg-teal-50" : "border-gray-200"}`}>
+            <strong className="block">Technician</strong><span>Apply for approval</span>
+          </button>
+          <Link href="/admin-access" className="rounded-xl border-2 border-gray-200 p-3 text-left text-sm hover:border-teal-600"><strong className="block">Admin</strong><span>Invitation only</span></Link>
+        </div>
+      </fieldset>
+
       <div className="grid grid-cols-2 gap-4">
         <FormField label="First Name" error={errors.firstName?.message}>
           <Input
