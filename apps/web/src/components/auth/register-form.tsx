@@ -33,6 +33,8 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -48,6 +50,7 @@ export function RegisterForm() {
     },
   });
 
+  const selectedRole = watch("role");
   const onSubmit = async (data: RegisterFormData) => {
     if (authAvailability !== "ready") {
       setError("Registration is unavailable because the account service is not connected. Your details were not submitted.");
@@ -61,7 +64,10 @@ export function RegisterForm() {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
-        role: "CUSTOMER",
+        role: data.role,
+        serviceAreas: data.role === "TECHNICIAN" ? (data.serviceAreas || "").split(",").map(x => x.trim()).filter(Boolean) : undefined,
+        specializations: data.role === "TECHNICIAN" ? (data.specializations || "").split(",").map(x => x.trim()).filter(Boolean) : undefined,
+        experience: data.role === "TECHNICIAN" ? data.experience : undefined,
       });
     } catch (err) {
       setError(
