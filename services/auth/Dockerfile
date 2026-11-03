@@ -40,7 +40,7 @@ RUN chmod +x ./scripts/start.sh
 
 EXPOSE 3001
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/auth/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${PORT:-3001}/api/auth/health" || exit 1
 
 CMD ["./scripts/start.sh"]
