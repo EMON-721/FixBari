@@ -43,19 +43,21 @@ app.use("/api/orders", ordersRouter);
 // Error handler
 app.use(errorHandler);
 
-// Start server
+// RabbitMQ is optional for COD-only orders. A missing payment message broker
+// must never prevent the booking and admin REST APIs from starting.
 async function start() {
-  try {
-    await initializeRabbitMQ();
-    console.log("Connected to RabbitMQ");
-
-    app.listen(port, () => {
-      console.log(`Orders service running on port ${port}`);
-    });
-  } catch (error) {
-    console.error("Failed to start orders service:", error);
-    process.exit(1);
+  app.listen(Number(port), "0.0.0.0", () => {
+    console.log(`Orders service running on port ${port}`);
+  });
+  if (process.env.RABBITMQ_URL) {
+    try {
+      await initializeRabbitMQ();
+      console.log("Connected to RabbitMQ");
+    } catch (error) {
+      console.error("RabbitMQ unavailable; COD REST operations remain available:", error);
+    }
+  } else {
+    console.log("RabbitMQ disabled: cash-on-delivery only; payment event processing unavailable.");
   }
 }
-
-start();
+void start();
