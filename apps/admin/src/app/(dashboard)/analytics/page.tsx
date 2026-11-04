@@ -39,7 +39,7 @@ export default function AnalyticsPage(){
    </div>
    <div className="rounded-2xl border bg-white p-5 lg:col-span-2"><h2 className="text-lg font-semibold">Technician performance</h2>
     <div className="mt-3 space-y-2">{(technicians.data||[]).map(x=><div key={x.id} className="flex flex-wrap justify-between gap-2 border-b py-2 text-sm"><span>{x.name}</span><span>{x.jobsCompleted} completed · {x.rating} rating · {money(x.revenue)}</span></div>)}
-     {!technicians.data.length&&<p className="text-sm text-gray-500">No approved technician performance history yet.</p>}</div>
+     {!technicians.data?.length&&<p className="text-sm text-gray-500">No approved technician performance history yet.</p>}</div>
    </div>
   </section><Link href="/reports" className="font-semibold text-amber-700 underline">Download booking reports</Link>
  </div>;
