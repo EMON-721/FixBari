@@ -1,9 +1,12 @@
 name: FixBari CI — build, database and browser smoke
+# Routine pushes no longer trigger 4 jobs and email notifications each time.
+# Run checks deliberately using Actions > Run workflow, or open a PR.
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: fixbari-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
