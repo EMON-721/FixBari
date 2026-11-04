@@ -9,7 +9,7 @@ export default function AnalyticsPage(){
  const overview=useOverviewStats(),revenue=useRevenueAnalytics(period),top=useTopServices(12),technicians=useTechnicianRankings(12);
  const loading=[overview,revenue,top,technicians].some(q=>q.isLoading);
  const error=[overview,revenue,top,technicians].find(q=>q.error)?.error;
- const data=overview.data?.data,metrics=[
+ const data=overview.data,metrics=[
   ["Registered customers",data?.totalUsers??0],["Technicians",data?.totalTechnicians??0],
   ["Active bookings",data?.activeBookings??0],["Completed revenue (MTD)",money(data?.revenueMTD??0)]
  ];
@@ -28,18 +28,18 @@ export default function AnalyticsPage(){
   <section className="grid gap-5 lg:grid-cols-2">
    <div className="rounded-2xl border bg-white p-5"><h2 className="text-lg font-semibold">Revenue breakdown</h2>
     <p className="mt-1 text-sm text-gray-500">Only completed bookings are included; COD income is an operational amount, not proof of collection.</p>
-    <p className="mt-4 text-3xl font-bold">{money(revenue.data?.data.total??0)}</p>
-    <p className="text-sm text-gray-600">Previous period: {money(revenue.data?.data.comparison.previousPeriod??0)}</p>
-    <div className="mt-4 space-y-2">{(revenue.data?.data.breakdown||[]).map(r=><div className="flex justify-between border-b py-2 text-sm" key={r.date}><span>{r.date} · {r.orders} jobs</span><strong>{money(r.amount)}</strong></div>)}
-    {!revenue.data?.data.breakdown.length&&<p className="mt-4 text-sm text-gray-500">No completed bookings in this period.</p>}</div>
+    <p className="mt-4 text-3xl font-bold">{money(revenue.data?.total??0)}</p>
+    <p className="text-sm text-gray-600">Previous period: {money(revenue.data?.comparison.previousPeriod??0)}</p>
+    <div className="mt-4 space-y-2">{(revenue.data?.breakdown||[]).map(r=><div className="flex justify-between border-b py-2 text-sm" key={r.date}><span>{r.date} · {r.orders} jobs</span><strong>{money(r.amount)}</strong></div>)}
+    {!revenue.data?.breakdown.length&&<p className="mt-4 text-sm text-gray-500">No completed bookings in this period.</p>}</div>
    </div>
    <div className="rounded-2xl border bg-white p-5"><h2 className="text-lg font-semibold">Top booked services</h2>
     <div className="mt-3 space-y-2">{(top.data?.topByBookings||[]).map(x=><div key={x.serviceId} className="flex justify-between border-b py-2 text-sm"><span>{x.name}</span><span>{x.bookings} · {money(x.revenue)}</span></div>)}
     {!top.data?.topByBookings.length&&<p className="text-sm text-gray-500">No completed service bookings to rank.</p>}</div>
    </div>
    <div className="rounded-2xl border bg-white p-5 lg:col-span-2"><h2 className="text-lg font-semibold">Technician performance</h2>
-    <div className="mt-3 space-y-2">{(technicians.data?.data||[]).map(x=><div key={x.id} className="flex flex-wrap justify-between gap-2 border-b py-2 text-sm"><span>{x.name}</span><span>{x.jobsCompleted} completed · {x.rating} rating · {money(x.revenue)}</span></div>)}
-     {!technicians.data?.data.length&&<p className="text-sm text-gray-500">No approved technician performance history yet.</p>}</div>
+    <div className="mt-3 space-y-2">{(technicians.data||[]).map(x=><div key={x.id} className="flex flex-wrap justify-between gap-2 border-b py-2 text-sm"><span>{x.name}</span><span>{x.jobsCompleted} completed · {x.rating} rating · {money(x.revenue)}</span></div>)}
+     {!technicians.data.length&&<p className="text-sm text-gray-500">No approved technician performance history yet.</p>}</div>
    </div>
   </section><Link href="/reports" className="font-semibold text-amber-700 underline">Download booking reports</Link>
  </div>;
