@@ -50,7 +50,7 @@ async function baseFetch<T>(
 
   // Do not let stale sessions hang the login page indefinitely if the
   // authentication service is sleeping, unreachable, or misconfigured.
-  const timeout = AbortSignal.timeout(endpoint.startsWith("/auth/") ? 15000 : 20000);
+  const timeout = AbortSignal.timeout(endpoint.startsWith("/auth/") ? 40000 : 20000);
   const combined = fetchOptions.signal ? AbortSignal.any([fetchOptions.signal, timeout]) : timeout;
   let response: Response;
   try {
