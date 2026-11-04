@@ -5,18 +5,23 @@ import { NextRequest, NextResponse } from "next/server";
 // accounts or accept passwords when persistent authentication is unavailable.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Allow the free Render backend time to wake; browser health checks retry safely.
+export const maxDuration = 60;
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
-function unavailable() {
-  return NextResponse.json(
-    {
-      code: "AUTH_SERVICE_UNAVAILABLE",
-      message:
-        "Sign-in is temporarily unavailable. The FixBari authentication server is not connected.",
-    },
-    { status: 503, headers: { "Cache-Control": "no-store" } }
-  );
+function unavailable(reason: "config" | "starting" | "network" = "network") {
+  const response = {
+    code: reason === "config" ? "AUTH_NOT_CONFIGURED" : reason === "starting" ? "AUTH_SERVICE_STARTING" : "AUTH_SERVICE_UNREACHABLE",
+    message: reason === "config"
+      ? "FixBari Admin authentication is not configured. Contact the website administrator."
+      : reason === "starting"
+        ? "The authentication server is starting. Please retry shortly."
+        : "The authentication server is temporarily unreachable. Please retry shortly.",
+  };
+  return NextResponse.json(response, {
+    status: 503, headers: { "Cache-Control": "no-store", "Retry-After": "5" },
+  });
 }
 
 function backendUrl(segments: string[], search: string): URL | null {
@@ -55,7 +60,7 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
   const target = backendUrl(path, request.nextUrl.search);
 
-  if (!target) return unavailable();
+  if (!target) return unavailable("config");
 
   const method = request.method;
   const hasBody = method !== "GET" && method !== "HEAD";
@@ -66,13 +71,14 @@ async function proxy(request: NextRequest, context: RouteContext) {
     const authorization = request.headers.get("authorization");
     if (authorization) headers.set("Authorization", authorization);
 
+    const timeout = AbortSignal.timeout(path.length === 1 && path[0] === "health" ? 18000 : 30000);
     const upstream = await fetch(target.toString(), {
       method,
       headers,
       body: hasBody ? await request.arrayBuffer() : undefined,
       redirect: "manual",
       cache: "no-store",
-      signal: AbortSignal.timeout(12000),
+      signal: timeout,
     });
 
     if (upstream.status >= 300 && upstream.status < 400) {
@@ -84,6 +90,9 @@ async function proxy(request: NextRequest, context: RouteContext) {
 
     const type = upstream.headers.get("content-type") || "";
     if (!type.includes("application/json")) {
+      if (upstream.status === 503 || upstream.status === 502 || upstream.status === 504) {
+        return unavailable("starting");
+      }
       return NextResponse.json(
         {
           code: "AUTH_GATEWAY_ERROR",
@@ -102,7 +111,7 @@ async function proxy(request: NextRequest, context: RouteContext) {
     });
   } catch {
     // No exception details, submitted credentials, or internal hosts are logged.
-    return unavailable();
+    return unavailable("starting");
   }
 }
 
