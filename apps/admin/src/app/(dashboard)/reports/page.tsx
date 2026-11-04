@@ -20,8 +20,8 @@ export default function ReportsPage(){
   <p className="text-sm text-gray-600">Export actual booking records; figures are derived from the database and do not imply successful cash collection.</p>
   {orders.error&&<p role="alert" className="rounded-xl bg-red-50 p-4 text-red-700">Reports unavailable: {orders.error.message}</p>}
   <div className="grid gap-4 sm:grid-cols-3">{[
-    ["Registered customers",overview.data?.data.totalUsers??0],["Active bookings",overview.data?.data.activeBookings??0],
-    ["Completed service value (month)", "৳"+(overview.data?.data.revenueMTD??0).toLocaleString()]
+    ["Registered customers",overview.data?.totalUsers??0],["Active bookings",overview.data?.activeBookings??0],
+    ["Completed service value (month)", "৳"+(overview.data?.revenueMTD??0).toLocaleString()]
    ].map(([name,value])=><article className="rounded-xl border bg-white p-5" key={name}><p className="text-sm text-gray-500">{name}</p><p className="mt-2 text-2xl font-bold">{value}</p></article>)}
   </div>
   <section className="rounded-2xl border bg-white p-5 space-y-4"><h2 className="text-lg font-semibold">Booking export</h2>
