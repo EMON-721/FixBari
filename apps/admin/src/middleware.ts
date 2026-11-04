@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const ACCESS_TOKEN_KEY = "fixbari_admin_access_token";
 const ALLOWED_ROLE = "ADMIN";
-const protectedPaths = ["/", "/bookings", "/services", "/technicians", "/users", "/settings", "/requests", "/analytics", "/transactions", "/reports", "/notifications", "/help"];
+const protectedPaths = ["/", "/bookings", "/services", "/technicians", "/users", "/settings", "/requests", "/analytics", "/transactions", "/reports", "/notifications", "/help", "/content-manager", "/content"];
 function isProtected(pathname: string) {
   return protectedPaths.some(path => path === "/" ? pathname === "/" : (pathname === path || pathname.startsWith(path + "/")));
 }
@@ -37,5 +37,5 @@ export async function middleware(request: NextRequest) {
   }
 }
 export const config = {
-  matcher: ["/", "/bookings/:path*", "/services/:path*", "/technicians/:path*", "/users/:path*", "/settings/:path*", "/requests/:path*", "/analytics/:path*", "/transactions/:path*", "/reports/:path*", "/notifications/:path*", "/help/:path*"],
+  matcher: ["/", "/bookings/:path*", "/services/:path*", "/technicians/:path*", "/users/:path*", "/settings/:path*", "/requests/:path*", "/analytics/:path*", "/transactions/:path*", "/reports/:path*", "/notifications/:path*", "/help/:path*", "/content-manager/:path*", "/content/:path*"],
 };
