@@ -1,11 +1,22 @@
-// The login, password recovery, and other public authentication pages must
-// always render. A cached ADMIN session may be stale or awaiting verification;
-// redirecting from a public page before a fresh login can create a redirect
-// loop between /login and the protected dashboard middleware.
+"use client";
+
+import { Suspense } from "react";
+
+// Always render public authentication routes without attempting a session
+// redirect. Suspense is retained for password-reset pages using useSearchParams;
+// the old PublicOnlyRoute was able to create a login/dashboard redirect loop.
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <Suspense fallback={
+      <main role="status" className="min-h-screen flex items-center justify-center text-sm text-gray-600">
+        Opening authentication form...
+      </main>
+    }>
+      {children}
+    </Suspense>
+  );
 }
