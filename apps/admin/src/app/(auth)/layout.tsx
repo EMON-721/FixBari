@@ -1,17 +1,11 @@
-"use client";
-
-import { Suspense } from "react";
-import { PublicOnlyRoute } from "@/components/auth/route-guards";
-import { LoadingScreen } from "@/components/auth/loading-screen";
-
+// The login, password recovery, and other public authentication pages must
+// always render. A cached ADMIN session may be stale or awaiting verification;
+// redirecting from a public page before a fresh login can create a redirect
+// loop between /login and the protected dashboard middleware.
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <Suspense fallback={<LoadingScreen />}>
-      <PublicOnlyRoute redirectTo="/">{children}</PublicOnlyRoute>
-    </Suspense>
-  );
+  return <>{children}</>;
 }
