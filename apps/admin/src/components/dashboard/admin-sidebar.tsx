@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -23,6 +23,8 @@ import {
   FilePenLine,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { storage } from "@/lib/storage";
+import { fetchApi } from "@/lib/api";
 
 const mainNavItems = [
   {
@@ -103,6 +105,22 @@ export function AdminSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { logout, user } = useAuth();
+  const [customNav,setCustomNav]=useState<Array<{label:string;href:string}>>([]);
+  useEffect(()=>{
+    let active=true;
+    const token=storage.getAccessToken();
+    if(token){
+      void fetchApi<{success:boolean;data:Array<{role:string;label:string;href:string;isVisible:boolean}>}>(
+        "/auth/site/navigation",{token}
+      ).then(r=>{
+        if(active&&r.success)setCustomNav(r.data.filter(x=>
+          x.role==="ADMIN"&&x.isVisible&&x.href.startsWith("/content/")
+        ).map(x=>({label:x.label,href:x.href})));
+      }).catch(()=>{ /* Core admin navigation remains available when CMS is offline. */ });
+    }
+    return ()=>{active=false};
+  },[]);
+
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -204,6 +222,9 @@ export function AdminSidebar() {
           )}
           {bottomNavItems.map((item) => (
             <NavLink key={item.href} item={item} />
+          ))}
+          {customNav.map(item=>(
+            <NavLink key={item.href} item={{...item,icon:FileText}} />
           ))}
         </div>
       </nav>
