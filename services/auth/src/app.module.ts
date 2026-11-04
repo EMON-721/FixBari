@@ -7,6 +7,7 @@ import { UsersModule } from "./modules/users/users.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { CatalogController } from "./catalog.controller";
 import { OperationsController } from "./operations.controller";
+import { SiteController } from "./site.controller";
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { OperationsController } from "./operations.controller";
     AuthModule,
     UsersModule,
   ],
-  controllers: [CatalogController, OperationsController],
+  controllers: [CatalogController, OperationsController, SiteController],
   providers: [
     {
       provide: APP_GUARD,
