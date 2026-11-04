@@ -36,7 +36,7 @@ export class SiteController {
   @Get("public-content")
   async publicContent(){
     const rows=await this.db.$queryRaw<{key:string;section:string;value:string}[]>`
-      SELECT key,section,value FROM site_content WHERE published = TRUE ORDER BY section,key`;
+      SELECT key,section,value FROM site_content WHERE published = TRUE AND (key LIKE 'home.%' OR key LIKE 'footer.%' OR key LIKE 'about.%' OR key LIKE 'customer.page.%') ORDER BY section,key`;
     return {success:true,data:rows};
   }
 
