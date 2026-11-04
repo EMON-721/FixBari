@@ -10,15 +10,15 @@ type Context = { params: Promise<{ path?: string[] }> };
 type ServiceKind = "orders" | "services";
 const allowedMethods = new Set(["GET","HEAD","POST","PATCH","PUT","DELETE"]);
 function destination(service: ServiceKind, parts: string[], search: string) {
-  const raw = (service === "orders"
-    ? process.env.ORDERS_SERVICE_ORIGIN
-    : process.env.SERVICES_SERVICE_ORIGIN || process.env.SERVICE_CATALOG_ORIGIN || "").trim();
+  // Use the existing secured backend and Neon connection until separate
+  // services receive their own dedicated credentials. No secrets enter Vercel.
+  const raw = (process.env.AUTH_SERVICE_ORIGIN || "").trim();
   if (!raw || !parts.every(x=>/^[A-Za-z0-9_-]{1,128}$/.test(x))) return null;
   let url: URL;
   try { url = new URL(raw); } catch { return null; }
   if (url.protocol !== "https:" || url.username || url.password ||
       url.pathname !== "/" || url.search || url.hash) return null;
-  const target = new URL("/api/" + service + "/" + parts.join("/"), url);
+  const target = new URL("/api/auth/" + (service === "orders" ? "operations" : "catalog") + (parts.length ? "/" + parts.join("/") : ""), url);
   target.search = search;
   return target;
 }
