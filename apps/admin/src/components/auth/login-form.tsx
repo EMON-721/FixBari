@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Button, Input } from "@local-services/ui";
-import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
+import { loginSchema } from "@/lib/validations/auth";
 import { useAuth } from "@/contexts/auth-context";
 import { PasswordInput } from "@/components/ui/password-input";
 import { FormField } from "@/components/ui/form-field";
@@ -15,6 +13,8 @@ export function LoginForm() {
   const [health, setHealth] = useState<"checking" | "ready" | "unavailable">("checking");
   const [healthDetails, setHealthDetails] = useState("");
   const [retryHealth, setRetryHealth] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string,string>>({});
 
   useEffect(() => {
     let active = true;
@@ -65,35 +65,45 @@ export function LoginForm() {
 
   const { login } = useAuth();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      rememberMe: false,
-      otpCode: "",
-    },
-  });
-
-  const onSubmit = async (data: LoginFormData) => {
-    if (health !== "ready") {
-      setError("Sign-in is not ready yet. Please retry the authentication connection.");
+  // Native FormData reads actual browser input values, including Brave/Chrome
+  // autofill that does not dispatch React onChange events.
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+    const values = new FormData(event.currentTarget);
+    const candidate = {
+      email: String(values.get("email") || "").trim(),
+      password: String(values.get("password") || ""),
+      otpCode: String(values.get("otpCode") || "").trim(),
+      rememberMe: values.get("rememberMe") === "on",
+    };
+    const parsed = loginSchema.safeParse(candidate);
+    if (!parsed.success) {
+      const issues: Record<string,string> = {};
+      for (const issue of parsed.error.issues) {
+        const key = String(issue.path[0] || "form");
+        issues[key] ||= issue.message;
+      }
+      setFieldErrors(issues);
+      setError("Please correct the highlighted fields and try again.");
       return;
     }
+    setFieldErrors({});
+    setError(null);
+    setIsSubmitting(true);
     try {
-      setError(null);
-      await login(data.email, data.password, data.otpCode);
+      // A health check should never block the actual sign-in attempt.
+      // The live login request itself is authoritative.
+      await login(parsed.data.email, parsed.data.password, parsed.data.otpCode);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-6" autoComplete="on">
       {health === "checking" && (
         <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" aria-live="polite">
           {healthDetails}
@@ -114,32 +124,36 @@ export function LoginForm() {
         </div>
       )}
 
-      <FormField label="Email" error={errors.email?.message}>
+      <FormField label="Email" error={fieldErrors.email}>
         <Input
           type="email"
           placeholder="admin@example.com"
-          {...register("email")}
+          name="email"
+          autoComplete="username"
+          required
           className="h-12 bg-gray-50 border-gray-200"
         />
       </FormField>
 
-      <FormField label="Password" error={errors.password?.message}>
+      <FormField label="Password" error={fieldErrors.password}>
         <PasswordInput
           placeholder="Enter your password"
-          {...register("password")}
+          name="password"
+          autoComplete="current-password"
+          required
           className="h-12 bg-gray-50 border-gray-200"
         />
       </FormField>
 
-      <FormField label="Authenticator code (if 2FA enabled)" error={errors.otpCode?.message}>
-        <Input inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="6-digit code" {...register("otpCode")} className="h-12 bg-gray-50 border-gray-200" />
+      <FormField label="Authenticator code (if 2FA enabled)" error={fieldErrors.otpCode}>
+        <Input inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="6-digit code" name="otpCode" pattern="[0-9]{6}" className="h-12 bg-gray-50 border-gray-200" />
       </FormField>
 
       <div className="flex items-center justify-between">
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
             type="checkbox"
-            {...register("rememberMe")}
+            name="rememberMe"
             className="rounded border-gray-300 text-primary focus:ring-primary"
           />
           <span className="text-gray-600">Remember me</span>
@@ -162,9 +176,9 @@ export function LoginForm() {
       <Button
         type="submit"
         className="w-full h-12 text-base font-semibold"
-        disabled={isSubmitting || health !== "ready"}
+        disabled={isSubmitting}
       >
-        {isSubmitting ? "Signing in..." : health === "checking" ? "Connecting to authentication..." : health === "unavailable" ? "Authentication unavailable" : "Sign in to Admin"}
+        {isSubmitting ? "Signing in..." : "Sign in to Admin"}
       </Button>
     </form>
   );
