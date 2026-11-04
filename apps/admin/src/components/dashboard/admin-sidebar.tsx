@@ -20,6 +20,7 @@ import {
   FileText,
   CreditCard,
   ClipboardList,
+  FilePenLine,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 
@@ -79,6 +80,11 @@ const bottomNavItems = [
     label: "Notifications",
     href: "/notifications",
     icon: Bell,
+  },
+  {
+    label: "Content Manager",
+    href: "/content-manager",
+    icon: FilePenLine,
   },
   {
     label: "Settings",
