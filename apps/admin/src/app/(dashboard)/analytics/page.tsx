@@ -17,7 +17,7 @@ export default function AnalyticsPage(){
   <header className="flex flex-wrap items-center justify-between gap-4">
    <div><h1 className="text-2xl font-bold">Analytics</h1><p className="mt-1 text-sm text-gray-600">Live database-derived booking, technician and revenue statistics</p></div>
    <select aria-label="Analytics period" className="rounded-xl border bg-white px-4 py-2" value={period} onChange={e=>setPeriod(e.target.value as typeof period)}>
-    {(["day","week","month","year"] as const).map(x=><option key={x} value={x}>{x[0].toUpperCase()+x.slice(1)}</option>)}
+    {(["day","week","month","year"] as const).map(x=><option key={x} value={x}>{x.charAt(0).toUpperCase()+x.slice(1)}</option>)}
    </select>
   </header>
   {error&&<p role="alert" className="rounded-xl bg-red-50 p-4 text-red-700">Analytics could not be loaded. {error instanceof Error?error.message:"Please retry."}</p>}
