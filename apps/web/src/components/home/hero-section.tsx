@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { Star, Users, CheckCircle } from "lucide-react";
 import { SearchBar } from "./search-bar";
 
@@ -9,6 +10,18 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ className = "" }: HeroSectionProps) {
+  const [copy,setCopy] = useState<Record<string,string>>({});
+  useEffect(()=>{
+    let active=true;
+    fetch("/api/auth/site/public-content",{cache:"no-store"})
+      .then(async r=>r.ok?r.json():null)
+      .then((result:{data?:Array<{key:string;value:string}>}|null)=>{
+        if(active&&Array.isArray(result?.data)){
+          setCopy(Object.fromEntries(result.data.map(entry=>[entry.key,entry.value])));
+        }
+      }).catch(()=>{ /* Default website copy remains available during a backend outage. */ });
+    return ()=>{active=false};
+  },[]);
   return (
     <section
       className={`relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-900 to-slate-900 ${className}`}
@@ -32,15 +45,13 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Home services,
-              <span className="block mt-2 text-cyan-300">
-                made simple.
-              </span>
+              {copy["home.hero.title"] || (
+                <>Home services, <span className="block mt-2 text-cyan-300">made simple.</span></>
+              )}
             </h1>
 
             <p className="text-slate-200 text-lg sm:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
-              Connect with verified professionals for painting, cleaning,
-              electrical, plumbing, and more. Quality service, guaranteed.
+              {copy["home.hero.subtitle"] || "Connect with verified professionals for painting, cleaning, electrical, plumbing, and more. Quality service, guaranteed."}
             </p>
 
             {/* Search Bar */}
