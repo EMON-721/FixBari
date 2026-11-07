@@ -1,5 +1,10 @@
 # FixBari
 
+## Administrative operations
+
+FixBari provides separate customer, technician and administrator interfaces. The administrator application in `apps/admin` covers service catalogue changes, job and booking oversight, technician review, account management and operational monitoring. Administrative authorization is a backend responsibility; live login, payment settlement and production security readiness must be evaluated independently from local previews.
+
+
 **FixBari** is a Bangladesh-focused home and business service marketplace connecting customers with local professionals. **Owner / Project Lead:** Md. Emon Hossain.
 
 ## How the platform works
@@ -48,7 +53,7 @@ Internal `@local-services/*` package identifiers are retained for workspace comp
 
 ## Verification and implementation status
 
-Prior GitHub Actions [run 41086311513](https://github.com/EMON-721/FixBari/actions/runs/41086311513) reported four passing jobs covering builds, Prisma/PostgreSQL and Django migrations, Google-token checks, mocked payment tests and a Chromium **offline-preview** browser journey. This is not proof of a production deployment, live OAuth, real card/wallet settlement, fully connected cross-service E2E, or completed admin 2FA. See the linked reports for the precise boundary. Later changes require a fresh passing CI run.
+Prior GitHub Actions [run 41086311513](https://github.com/emonhossain24/FixBari/actions/runs/41086311513) reported four passing jobs covering builds, Prisma/PostgreSQL and Django migrations, Google-token checks, mocked payment tests and a Chromium **offline-preview** browser journey. This is not proof of a production deployment, live OAuth, real card/wallet settlement, fully connected cross-service E2E, or completed admin 2FA. See the linked reports for the precise boundary. Later changes require a fresh passing CI run.
 
 ## Project documentation
 
@@ -61,11 +66,8 @@ Prior GitHub Actions [run 41086311513](https://github.com/EMON-721/FixBari/actio
 
 **FixBari — Local service, made simpler.**
 
-<!-- DEPLOYMENT LINKS: maintained for GitHub repository navigation -->
 ## Website & repository links
 
-- **Source repository:** https://github.com/EMON-721/FixBari
+- **Source repository:** https://github.com/emonhossain24/FixBari
 - **Published website URL:** https://fix-bari.vercel.app
-- **Availability:** Deployment URL recorded; live HTTP reachability could not be independently verified on 1 November 2026.
 
-<!-- END DEPLOYMENT LINKS -->
